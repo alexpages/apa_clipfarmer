@@ -2,6 +2,10 @@ plugins {
     id 'java'
 }
 
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
 group = 'com.apa.clipfarmer'
 version = '1.0-SNAPSHOT'
 
@@ -9,6 +13,11 @@ repositories {
     mavenCentral()
 }
 
+compileJava.options.encoding = "UTF-8"
+compileTestJava.options.encoding = "UTF-8"
+
+/* DEPENDENCIES
+=====================================================================================================================*/
 dependencies {
 
     implementation(group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.23.1')
