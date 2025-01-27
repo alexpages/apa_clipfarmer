@@ -1,9 +1,12 @@
 package com.apa.clipfarmer;
 
 import com.apa.clipfarmer.logic.ClipFarmerLogic;
+import com.apa.clipfarmer.logic.TwitchLogic;
 import com.apa.clipfarmer.model.ClipFarmerArgs;
 import com.apa.clipfarmer.model.StreamerNameEnum;
 import com.beust.jcommander.JCommander;
+import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -17,10 +20,12 @@ import org.slf4j.LoggerFactory;
  * @author alexpages
  */
 
+@RequiredArgsConstructor
 @Slf4j
 public class ClipFarmer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ClipFarmer.class);
+    private final ClipFarmerLogic clipFarmerLogic;
 
     /**
      * Execute main batch
@@ -28,11 +33,11 @@ public class ClipFarmer {
      * @param args
      */
     public static void main(String[] args) {
-
-        final ClipFarmerLogic clipFarmerLogic;
         final ClipFarmerArgs clipFarmerArgs;
 
         try {
+            System.out.println(TwitchLogic.getOAuthToken());
+
             ClipFarmerArgs.Builder clipFarmerArgsBuilder = new ClipFarmerArgs.Builder();
             new JCommander(clipFarmerArgsBuilder).parse(args);
             clipFarmerArgs = clipFarmerArgsBuilder.build();

@@ -21,8 +21,8 @@ public enum StreamerNameEnum {
     /**
      * Returns the StreamerNameEnum from a String value
      *
-     * @param streamerName
-     * @return
+     * @param streamerName The name of the Streamer
+     * @return The StreamerNameEnum
      */
     public static StreamerNameEnum fromString(String streamerName) {
         for (StreamerNameEnum streamerNameEnum : values()) {
