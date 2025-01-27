@@ -13,7 +13,7 @@ import lombok.Getter;
 public enum StreamerNameEnum {
 
     JASONTHEWEEN("jasontheween"),
-    INVALID(null);
+    INVALID("");
 
     private final String name;
 

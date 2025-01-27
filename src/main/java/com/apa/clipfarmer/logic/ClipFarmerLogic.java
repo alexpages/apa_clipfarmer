@@ -7,4 +7,23 @@ package com.apa.clipfarmer.logic;
  */
 public class ClipFarmerLogic {
 
+    /**
+     * Returns a cURL or download URL for the clip to be downloaded
+     *
+     * @param streamerName
+     */
+    public String formatDownloadUrl (String streamerName) {
+
+        return null;
+    }
+
+    /**
+     * Checks if the URL is valid
+     *
+     * @param url
+     */
+    public String checkIfDownloadUrlIsValid (String url) {
+        return null;
+    }
+
 }
