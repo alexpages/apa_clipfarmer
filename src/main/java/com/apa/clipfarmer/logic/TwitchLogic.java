@@ -1,7 +1,6 @@
 package com.apa.clipfarmer.logic;
 
-import com.apa.clipfarmer.ClipFarmer;
-import lombok.AllArgsConstructor;
+
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
@@ -34,33 +33,25 @@ public class TwitchLogic {
      * @return OAuth token
      * @throws IOException if the request fails
      */
-    public static String getOAuthToken() throws IOException {
+    public static String getOAuthToken() {
         if (TWITCH_CLIENT_ID == null || TWITCH_CLIENT_SECRET == null) {
             log.error("Environment variables TWITCH_CLIENT_ID or TWITCH_CLIENT_SECRET are not set.");
             throw new IllegalStateException("Missing Twitch credentials.");
         }
-
         String body = "client_id=" + TWITCH_CLIENT_ID + "&client_secret=" + TWITCH_CLIENT_SECRET + "&grant_type=client_credentials";
-        log.info("Preparing to fetch OAuth token from Twitch API.");
-
         try (CloseableHttpClient client = HttpClients.createDefault()) {
             HttpPost post = new HttpPost(TWITCH_URL);
             post.setHeader("Content-Type", "application/x-www-form-urlencoded");
             post.setEntity(new StringEntity(body));
 
-            log.debug("Executing POST request to {}", TWITCH_URL);
-
             try (CloseableHttpResponse response = client.execute(post)) {
                 int statusCode = response.getCode();
                 log.info("Received response with status code: {}", statusCode);
-
                 if (statusCode == 200) {
                     String responseBody = EntityUtils.toString(response.getEntity());
                     log.debug("Response body: {}", responseBody);
-
                     Map<String, String> responseMap = parseJsonResponse(responseBody);
                     String accessToken = responseMap.get("access_token");
-
                     if (accessToken != null) {
                         log.info("Successfully fetched OAuth token.");
                         return accessToken;
@@ -88,7 +79,6 @@ public class TwitchLogic {
      */
     private Map<String, String> parseJsonResponse(String jsonResponse) {
         Map<String, String> responseMap = new HashMap<>();
-        log.debug("Parsing JSON response.");
 
         try {
             String[] pairs = jsonResponse.replaceAll("[{}\"]", "").split(",");
@@ -100,8 +90,6 @@ public class TwitchLogic {
             log.error("Error parsing JSON response: {}", e.getMessage(), e);
             throw new RuntimeException("Failed to parse JSON response.", e);
         }
-
-        log.debug("Parsed response: {}", responseMap);
         return responseMap;
     }
 }
