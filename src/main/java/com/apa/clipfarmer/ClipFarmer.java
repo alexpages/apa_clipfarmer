@@ -1,6 +1,9 @@
 package com.apa.clipfarmer;
 
 import com.apa.clipfarmer.logic.ClipFarmerLogic;
+import com.apa.clipfarmer.logic.TwitchAuthLogic;
+import com.apa.clipfarmer.logic.TwitchClipFetcherLogic;
+import com.apa.clipfarmer.logic.TwitchUserLogic;
 import com.apa.clipfarmer.model.ClipFarmerArgs;
 import com.apa.clipfarmer.model.StreamerNameEnum;
 import com.beust.jcommander.JCommander;
@@ -22,7 +25,6 @@ import org.slf4j.LoggerFactory;
 public class ClipFarmer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ClipFarmer.class);
-    private final ClipFarmerLogic clipFarmerLogic;
 
     /**
      * Execute main batch
@@ -30,8 +32,9 @@ public class ClipFarmer {
      * @param args
      */
     public static void main(String[] args) {
-        final ClipFarmerArgs clipFarmerArgs;
+        args = new String[]{"streamerName=jasontheween"};
 
+        final ClipFarmerArgs clipFarmerArgs;
         try {
             ClipFarmerArgs.Builder clipFarmerArgsBuilder = new ClipFarmerArgs.Builder();
             new JCommander(clipFarmerArgsBuilder).parse(args);
@@ -47,7 +50,9 @@ public class ClipFarmer {
                 LOGGER.warn("Twitch streamer is not present in list or was null");
                 return;
             }
-            //TODO implement logic
+
+            String oAuthToken = TwitchAuthLogic.getOAuthToken();
+            String clips = TwitchClipFetcherLogic.getTwitchClips(streamerNameEnum.getName(), oAuthToken);
             System.out.println("Executing ClipFarmer logic for streamer: " + streamerNameEnum.getName());
 
         } catch (Exception e) {

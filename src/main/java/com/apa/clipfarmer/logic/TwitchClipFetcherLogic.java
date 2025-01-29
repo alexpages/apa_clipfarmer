@@ -2,17 +2,24 @@ package com.apa.clipfarmer.logic;
 
 import com.apa.clipfarmer.model.TwitchConstants;
 import com.apa.clipfarmer.utils.HttpUtils;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.springframework.http.*;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 
 /**
- * Fetches the most viewed Twitch clips for a specific streamer.
- * This class handles the logic for fetching clips using Twitch APIs.
+ * Fetches and processes the most viewed Twitch clips for a specific streamer.
+ * Handles API calls and sorting logic.
  *
  * @author alexpages
  */
@@ -20,49 +27,64 @@ import java.util.Map;
 public class TwitchClipFetcherLogic {
 
     /**
-     * Fetches the top 5 clips for the given streamer.
+     * Fetches the top clips for the given streamer and sorts them by view count.
      *
-     * @param streamerName the name of the streamer
-     * @return a list of URLs of the clips
+     * @param streamerName The name of the streamer.
+     * @param oAuthToken   The OAuth token for authentication.
+     * @return A JSON string containing the sorted list of clips.
      */
-    public List<String> getTwitchClips(String streamerName) {
-        String oAuthToken = TwitchAuthLogic.getOAuthToken();
-        String broadcasterId = TwitchUserLogic.getBroadcasterId(streamerName);
+    public static String getTwitchClips(String streamerName, String oAuthToken) {
+        String broadcasterId = TwitchUserLogic.getBroadcasterId(streamerName, oAuthToken);
+        String url = UriComponentsBuilder.fromHttpUrl(TwitchConstants.TWITCH_CLIP_API)
+                .queryParam("broadcaster_id", broadcasterId)
+                .queryParam("started_at", Instant.now().minus(5, ChronoUnit.DAYS)) // Clips from 5 days ago
+                .toUriString();
 
-        if (broadcasterId == null || broadcasterId.isEmpty()) {
-            log.error("Failed to fetch broadcaster ID for streamer: {}", streamerName);
-            throw new IllegalArgumentException("Invalid broadcaster ID for streamer: " + streamerName);
-        }
+        // Set up headers for the request
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Bearer " + oAuthToken);
+        headers.set("Client-Id", TwitchConstants.TWITCH_CLIENT_ID);
 
-        String url = TwitchConstants.TWITCH_CLIP_API + "?broadcaster_id=" + broadcasterId + "&first=5";
-        HttpGet get = new HttpGet(url);
-        get.setHeader("Authorization", "Bearer " + oAuthToken);
-        get.setHeader("Client-Id", TwitchConstants.TWITCH_CLIENT_ID);
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+        RestTemplate restTemplate = new RestTemplate();
 
         try {
-            String responseBody = HttpUtils.executeRequest(get);
-            Map<String, Object> responseMap = HttpUtils.parseJsonResponse(responseBody);
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+            log.info("Response from Twitch Clip API: {}", response.getBody());
 
-            @SuppressWarnings("unchecked")
-            List<Map<String, Object>> clips = (List<Map<String, Object>>) responseMap.get("data");
-            if (clips == null) {
-                log.error("No clips found in the response for streamer: {}", streamerName);
-                return new ArrayList<>();
+            JsonNode jsonNodeResponse = HttpUtils.parseJsonResponse(response.getBody());
+
+            if (!jsonNodeResponse.has("data") || !jsonNodeResponse.get("data").isArray()) {
+                log.warn("No clip data found for streamer: {}", streamerName);
+                return "[]"; // Return empty JSON array
             }
-
-            List<String> clipUrls = new ArrayList<>();
-            for (Map<String, Object> clip : clips) {
-                String urlValue = (String) clip.get("url");
-                if (urlValue != null) {
-                    clipUrls.add(urlValue);
-                }
-            }
-
-            log.info("Successfully fetched {} clips for streamer: {}", clipUrls.size(), streamerName);
-            return clipUrls;
-        } catch (IOException e) {
-            log.error("Unexpected error occurred while fetching clips for streamer {}: {}", streamerName, e.getMessage(), e);
-            throw new RuntimeException("Unexpected error occurred while fetching Twitch clips.", e);
+            return sortClipsByViewCount(jsonNodeResponse);
+        } catch (Exception e) {
+            log.error("Error fetching clips for streamer {}: {}", streamerName, e.getMessage(), e);
+            throw new RuntimeException("Failed to fetch Twitch clips.", e);
         }
+    }
+
+    /**
+     * Sorts Twitch clips by view count in descending order.
+     *
+     * @param jsonResponse The JSON response containing Twitch clips.
+     * @return A JSON string with sorted clips.
+     * @throws IOException If parsing fails.
+     */
+    private static String sortClipsByViewCount(JsonNode jsonResponse) throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        ArrayNode clipsArray = (ArrayNode) jsonResponse.get("data");
+
+        List<JsonNode> clipsList = new ArrayList<>();
+        clipsArray.forEach(clipsList::add);
+
+        // Sort clips by view_count in descending order
+        clipsList.sort(Comparator.comparingInt(o -> -o.get("view_count").asInt()));
+
+        ArrayNode sortedArray = objectMapper.createArrayNode();
+        clipsList.forEach(sortedArray::add);
+        return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(sortedArray);
     }
 }

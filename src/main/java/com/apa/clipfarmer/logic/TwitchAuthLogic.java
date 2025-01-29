@@ -3,13 +3,13 @@ package com.apa.clipfarmer.logic;
 
 import com.apa.clipfarmer.model.TwitchConstants;
 import com.apa.clipfarmer.utils.HttpUtils;
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 
 import java.io.IOException;
-import java.util.Map;
 
 /**
  * Class that gathers all Twitch logic. Auth, fetch, etc.
@@ -40,10 +40,9 @@ public class TwitchAuthLogic {
 
         try {
             String responseBody = HttpUtils.executeRequest(post);
-            Map<String, Object> responseMap = HttpUtils.parseJsonResponse(responseBody);
-            String accessToken = responseMap.get("access_token").toString();
+            JsonNode jsonNodeResponse = HttpUtils.parseJsonResponse(responseBody);
+            String accessToken = jsonNodeResponse.get("access_token").toString().replaceAll("\"", "");
             if (accessToken != null) {
-                log.info("Successfully fetched OAuth token.");
                 return accessToken;
             } else {
                 log.error("Access token not found in the response.");

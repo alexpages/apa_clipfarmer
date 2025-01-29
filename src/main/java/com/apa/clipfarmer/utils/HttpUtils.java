@@ -1,5 +1,7 @@
 package com.apa.clipfarmer.utils;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
@@ -49,19 +51,14 @@ public class HttpUtils {
      * @param jsonResponse JSON response string
      * @return Map with parsed data
      */
-    public static Map<String, Object> parseJsonResponse(String jsonResponse) {
-        Map<String, Object> responseMap = new HashMap<>();
-
+    public static JsonNode parseJsonResponse(String jsonResponse) {
+        ObjectMapper objectMapper = new ObjectMapper();
         try {
-            String[] pairs = jsonResponse.replaceAll("[{}\"]", "").split(",");
-            for (String pair : pairs) {
-                String[] keyValue = pair.split(":");
-                responseMap.put(keyValue[0].trim(), keyValue[1].trim());
-            }
+            // Parse the JSON string into a JsonNode
+            return objectMapper.readTree(jsonResponse);
         } catch (Exception e) {
-            log.error("Error parsing JSON response: {}", e.getMessage(), e);
+            System.err.println("Error parsing JSON response: " + e.getMessage());
             throw new RuntimeException("Failed to parse JSON response.", e);
         }
-        return responseMap;
     }
 }
