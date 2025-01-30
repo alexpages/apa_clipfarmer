@@ -1,7 +1,7 @@
 package com.apa.clipfarmer;
 
-import com.apa.clipfarmer.logic.TwitchAuthLogic;
-import com.apa.clipfarmer.logic.TwitchClipFetcherLogic;
+import com.apa.clipfarmer.logic.twitch.TwitchAuthLogic;
+import com.apa.clipfarmer.logic.twitch.TwitchClipFetcherLogic;
 import com.apa.clipfarmer.model.ClipFarmerArgs;
 import com.apa.clipfarmer.model.StreamerNameEnum;
 import com.beust.jcommander.JCommander;

@@ -1,4 +1,4 @@
-package com.apa.clipfarmer.logic;
+package com.apa.clipfarmer.logic.twitch;
 
 import com.apa.clipfarmer.model.TwitchConstants;
 import com.apa.clipfarmer.utils.HttpUtils;
