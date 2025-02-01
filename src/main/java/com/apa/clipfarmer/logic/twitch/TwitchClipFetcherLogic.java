@@ -53,13 +53,14 @@ public class TwitchClipFetcherLogic {
             ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
             log.info("Response from Twitch Clip API: {}", response.getBody());
 
-            JsonNode jsonNodeResponse = HttpUtils.parseJsonResponse(response.getBody());
-
-            if (!jsonNodeResponse.has("data") || !jsonNodeResponse.get("data").isArray()) {
-                log.warn("No clip data found for streamer: {}", streamerName);
-                return "[]"; // Return empty JSON array
-            }
-            return sortClipsByViewCount(jsonNodeResponse);
+            return response.getBody();
+//            JsonNode jsonNodeResponse = HttpUtils.parseJsonResponse(response.getBody());
+//
+//            if (!jsonNodeResponse.has("data") || !jsonNodeResponse.get("data").isArray()) {
+//                log.warn("No clip data found for streamer: {}", streamerName);
+//                return "[]"; // Return empty JSON array
+//            }
+//            return sortClipsByViewCount(jsonNodeResponse);
         } catch (Exception e) {
             log.error("Error fetching clips for streamer {}: {}", streamerName, e.getMessage(), e);
             throw new RuntimeException("Failed to fetch Twitch clips.", e);

@@ -54,7 +54,7 @@ public class ClipFarmer {
             System.out.println("Executing ClipFarmer logic for streamer: " + streamerNameEnum.getName());
 
         } catch (Exception e) {
-
+            LOGGER.error("Got an error: " + e.getMessage());
         }
     }
 }
