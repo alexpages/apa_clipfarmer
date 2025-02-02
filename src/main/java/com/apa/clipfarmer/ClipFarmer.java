@@ -3,7 +3,7 @@ package com.apa.clipfarmer;
 import com.apa.clipfarmer.logic.twitch.TwitchAuthLogic;
 import com.apa.clipfarmer.logic.twitch.TwitchClipFetcherLogic;
 import com.apa.clipfarmer.model.ClipFarmerArgs;
-import com.apa.clipfarmer.model.StreamerNameEnum;
+import com.apa.clipfarmer.model.TwitchStreamerNameEnum;
 import com.beust.jcommander.JCommander;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -48,16 +48,17 @@ public class ClipFarmer {
             return;
         }
 
-        StreamerNameEnum streamerNameEnum = clipFarmerArgs.getStreamerNameEnum();
+        TwitchStreamerNameEnum twitchStreamerNameEnum = clipFarmerArgs.getTwitchStreamerNameEnum();
         try {
-            if (StreamerNameEnum.INVALID.equals(streamerNameEnum)) {
+            if (TwitchStreamerNameEnum.INVALID.equals(twitchStreamerNameEnum)) {
                 log.warn("Twitch streamer is not present in list or was null");
                 return;
             }
 
             String oAuthToken = TwitchAuthLogic.getOAuthToken();
-            String clips = TwitchClipFetcherLogic.getTwitchClips(streamerNameEnum.getName(), oAuthToken);
-            System.out.println("Executing ClipFarmer logic for streamer: " + streamerNameEnum.getName());
+            String clips = TwitchClipFetcherLogic.getTwitchClips(twitchStreamerNameEnum.getName(), oAuthToken);
+
+            System.out.println("Executing ClipFarmer logic for streamer: " + twitchStreamerNameEnum.getName());
 
         } catch (Exception e) {
             log.error("Got an error: " + e.getMessage());

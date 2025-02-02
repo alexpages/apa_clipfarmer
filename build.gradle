@@ -29,7 +29,11 @@ dependencies {
     implementation group: 'com.beust', name: 'jcommander', version: '1.82'
     implementation 'org.apache.httpcomponents.client5:httpclient5:5.2'
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.18.2'
-    implementation 'mysql:mysql-connector-java:8.0.33'
+
+    implementation group: 'mysql', name: 'mysql-connector-java', version: '8.0.33'
+    implementation group: 'com.zaxxer', name: 'HikariCP', version: '6.2.1'
+    implementation 'org.springframework:spring-jdbc:5.3.22' // Use the appropriate version
+
     implementation group: 'org.projectlombok', name: 'lombok', version: '1.18.36'
     annotationProcessor 'org.projectlombok:lombok:1.18.36'
     testImplementation platform('org.junit:junit-bom:5.10.0')

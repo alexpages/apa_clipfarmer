@@ -13,7 +13,7 @@ import lombok.Setter;
 @Getter
 public final class ClipFarmerArgs {
 
-    private StreamerNameEnum streamerNameEnum;
+    private TwitchStreamerNameEnum twitchStreamerNameEnum;
 
     /**
      * Class to build ClipFarmerArgs
@@ -34,7 +34,7 @@ public final class ClipFarmerArgs {
          */
         public ClipFarmerArgs build() {
             ClipFarmerArgs clipFarmerArgs = new ClipFarmerArgs();
-            clipFarmerArgs.streamerNameEnum = StreamerNameEnum.fromString(this.streamerName);
+            clipFarmerArgs.twitchStreamerNameEnum = TwitchStreamerNameEnum.fromString(this.streamerName);
             return clipFarmerArgs;
         }
     }
