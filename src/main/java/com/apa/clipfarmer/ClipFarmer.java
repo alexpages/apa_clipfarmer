@@ -7,8 +7,8 @@ import com.apa.clipfarmer.model.StreamerNameEnum;
 import com.beust.jcommander.JCommander;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import java.net.URL;
 
 /**
  * Class to trigger the script
@@ -22,15 +22,21 @@ import org.slf4j.LoggerFactory;
 @Slf4j
 public class ClipFarmer {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ClipFarmer.class);
-
     /**
      * Execute main batch
      *
      * @param args
      */
     public static void main(String[] args) {
-        args = new String[]{"streamerName=jasontheween"};
+
+        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+        URL log4jConfig = classLoader.getResource("log4j2.xml");
+
+        if (log4jConfig != null) {
+            System.out.println("Found log4j2.xml: " + log4jConfig);
+        } else {
+            System.out.println("log4j2.xml NOT found in classpath!");
+        }
 
         final ClipFarmerArgs clipFarmerArgs;
         try {
@@ -38,14 +44,14 @@ public class ClipFarmer {
             new JCommander(clipFarmerArgsBuilder).parse(args);
             clipFarmerArgs = clipFarmerArgsBuilder.build();
         } catch (Exception e) {
-            LOGGER.warn("Invalid arguments: {}", e.getMessage());
+            log.warn("Invalid arguments: {}", e.getMessage());
             return;
         }
 
         StreamerNameEnum streamerNameEnum = clipFarmerArgs.getStreamerNameEnum();
         try {
             if (StreamerNameEnum.INVALID.equals(streamerNameEnum)) {
-                LOGGER.warn("Twitch streamer is not present in list or was null");
+                log.warn("Twitch streamer is not present in list or was null");
                 return;
             }
 
@@ -54,7 +60,7 @@ public class ClipFarmer {
             System.out.println("Executing ClipFarmer logic for streamer: " + streamerNameEnum.getName());
 
         } catch (Exception e) {
-            LOGGER.error("Got an error: " + e.getMessage());
+            log.error("Got an error: " + e.getMessage());
         }
     }
 }

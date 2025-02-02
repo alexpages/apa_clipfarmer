@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!DOCTYPE suppressions PUBLIC
+        "-//Checkstyle//DTD SuppressionFilter Configuration 1.2//EN"
+        "https://checkstyle.org/dtds/suppressions_1_2.dtd">
+
+<suppressions>
+    <!-- Suppress all checks for generated code -->
+    <suppress files=".*[/\\]generated[/\\].*" checks=".*"/>
+
+    <!-- Suppress LineLength check for all test files -->
+    <suppress files=".*Test\.java" checks="LineLength"/>
+
+    <!-- Suppress specific rule (e.g., JavadocMethod) for a specific file -->
+    <suppress files="MyClass.java" checks="JavadocMethod"/>
+
+    <!-- Suppress specific rule (e.g., MagicNumber) for a specific line in a file -->
+    <suppress files="MyClass.java" checks="MagicNumber" lines="45"/>
+
+    <!-- Suppress multiple rules for a specific file -->
+    <suppress files="AnotherClass.java" checks="Indentation|WhitespaceAround"/>
+
+    <!-- Suppress all checks for a specific directory -->
+    <suppress files=".*[/\\]legacy-code[/\\].*" checks=".*"/>
+</suppressions>

@@ -1,7 +1,7 @@
 package com.apa.clipfarmer.logic;
 
 /**
- * Main logic that fetches and uploads the clips to Youtube channel
+ * Main logic that fetches and uploads the clips to Youtube channel.
  *
  * @author alexpages
  */
@@ -11,8 +11,9 @@ public class ClipFarmerLogic {
      * Returns a cURL or download URL for the clip to be downloaded
      *
      * @param streamerName
+     * @return the url after formatting
      */
-    public String formatDownloadUrl (String streamerName) {
+    public String formatDownloadUrl(final String streamerName) {
 
         return null;
     }
@@ -21,8 +22,9 @@ public class ClipFarmerLogic {
      * Checks if the URL is valid
      *
      * @param url
+     * @return true if the url is valid, otherwise false
      */
-    public String checkIfDownloadUrlIsValid (String url) {
+    public Boolean checkIfDownloadUrlIsValid(final String url) {
         return null;
     }
 

@@ -8,6 +8,7 @@ import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.core5.http.HttpStatus;
 import org.apache.hc.core5.http.ParseException;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 
@@ -29,7 +30,7 @@ public class HttpUtils {
              CloseableHttpResponse response = client.execute(request)) {
             int statusCode = response.getCode();
 
-            if (statusCode >= 200 && statusCode < 300) {
+            if (statusCode >= HttpStatus.SC_SUCCESS && statusCode < HttpStatus.SC_MULTIPLE_CHOICES) {
                 return EntityUtils.toString(response.getEntity());
             } else {
                 String errorBody = EntityUtils.toString(response.getEntity());

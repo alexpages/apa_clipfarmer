@@ -27,7 +27,12 @@ public final class ClipFarmerArgs {
         @Parameter(names = "streamerName", required = true)
         private String streamerName;
 
-        public ClipFarmerArgs build(){
+        /**
+         * Parses the args into a variable to be used.
+         *
+         * @return The arguments to be used on main method
+         */
+        public ClipFarmerArgs build() {
             ClipFarmerArgs clipFarmerArgs = new ClipFarmerArgs();
             clipFarmerArgs.streamerNameEnum = StreamerNameEnum.fromString(this.streamerName);
             return clipFarmerArgs;

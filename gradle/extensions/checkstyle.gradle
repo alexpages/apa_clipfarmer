@@ -1,0 +1,11 @@
+checkstyle {
+    toolVersion = "10.12.4"
+    configFile = file("${project.rootDir}/config/checkstyle/checkstyle.xml") // Path to your Checkstyle rules
+}
+
+tasks.withType(Checkstyle) {
+    reports {
+        xml.required = true
+        html.required = true
+    }
+}

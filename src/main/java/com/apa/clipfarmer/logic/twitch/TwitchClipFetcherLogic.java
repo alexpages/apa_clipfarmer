@@ -1,12 +1,15 @@
 package com.apa.clipfarmer.logic.twitch;
 
 import com.apa.clipfarmer.model.TwitchConstants;
-import com.apa.clipfarmer.utils.HttpUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -26,6 +29,8 @@ import java.util.List;
 @Slf4j
 public class TwitchClipFetcherLogic {
 
+    private static final int STARTED_AT = 5;
+
     /**
      * Fetches the top clips for the given streamer and sorts them by view count.
      *
@@ -37,7 +42,7 @@ public class TwitchClipFetcherLogic {
         String broadcasterId = TwitchUserLogic.getBroadcasterId(streamerName, oAuthToken);
         String url = UriComponentsBuilder.fromHttpUrl(TwitchConstants.TWITCH_CLIP_API)
                 .queryParam("broadcaster_id", broadcasterId)
-                .queryParam("started_at", Instant.now().minus(5, ChronoUnit.DAYS)) // Clips from 5 days ago
+                .queryParam("started_at", Instant.now().minus(STARTED_AT, ChronoUnit.DAYS)) // Clips from 5 days ago
                 .toUriString();
 
         // Set up headers for the request
