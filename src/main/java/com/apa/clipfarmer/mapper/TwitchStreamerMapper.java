@@ -14,6 +14,7 @@ public class TwitchStreamerMapper {
 
     private int id;
     private String twitchStreamerName;
+    private String broadcasterId;
     private ArrayList<String> addedClips;
 
 }

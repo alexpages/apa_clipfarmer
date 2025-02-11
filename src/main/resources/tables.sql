@@ -8,20 +8,21 @@ DROP TABLE IF EXISTS twitch_streamer;
 -- Create table for TwitchStreamer
 CREATE TABLE twitch_streamer (
     id INT NOT NULL AUTO_INCREMENT,
-    twitchStreamerName VARCHAR(255) NOT NULL,
-    addedClips BLOB, -- Use JSON to store an array of strings (clip IDs)
+    twitch_streamer_name VARCHAR(255) NOT NULL,
+    broadcaster_id VARCHAR(255) NOT NULL,
+    added_clips BLOB,
     PRIMARY KEY (id)
 );
 
 -- Create table for TwitchClip
 CREATE TABLE twitch_clip (
     id INT NOT NULL AUTO_INCREMENT,
-    clipId VARCHAR(255) NOT NULL UNIQUE,
+    clip_id VARCHAR(255) NOT NULL UNIQUE,
     title VARCHAR(255) NOT NULL,
-    creatorName VARCHAR(255) NOT NULL,
-    viewCount INT NOT NULL,
-    createdAt DATETIME NOT NULL,
-    streamerId INT, -- Add streamerId to relate clips to streamers
+    creator_name VARCHAR(255) NOT NULL,
+    view_count INT NOT NULL,
+    created_at DATETIME NOT NULL,
+    streamer_id INT, -- Add streamerId to relate clips to streamers
     PRIMARY KEY (id),
-    FOREIGN KEY (streamerId) REFERENCES twitch_streamer(id) ON DELETE SET NULL
+    FOREIGN KEY (streamer_id) REFERENCES twitch_streamer(id) ON DELETE SET NULL
 );

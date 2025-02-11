@@ -13,7 +13,7 @@ import java.util.ArrayList;
 public class TwitchStreamer {
 
     private int id;
-    private String streamerName;
+    private String twitchStreamerName;
     private String broadcasterId;
     private ArrayList<String> addedClips;
 

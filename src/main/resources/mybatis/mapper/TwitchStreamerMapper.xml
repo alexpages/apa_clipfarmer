@@ -4,47 +4,49 @@
 
     <!-- ResultMap for TwitchStreamer -->
     <resultMap id="TwitchStreamerResultMap" type="com.apa.clipfarmer.mapper.TwitchStreamerMapper">
-        <id property="id" column="ID" />
-        <result property="twitchStreamerName" column="TwitchStreamerName" />
-        <result property="addedClips" column="ADDED_CLIPS" typeHandler="com.apa.clipfarmer.mapper.BLOBTypeHandler" />
+        <id property="id" column="id" />
+        <result property="twitchStreamerName" column="twitch_streamer_name" />
+        <result property="broadcasterId" column="broadcaster_id" />
+        <result property="addedClips" column="added_clips" typeHandler="com.apa.clipfarmer.mapper.BLOBTypeHandler" />
     </resultMap>
 
     <!-- Select all TwitchStreamers -->
     <select id="selectAllStreamers" resultMap="TwitchStreamerResultMap">
-        SELECT ID, TwitchStreamerName, ADDED_CLIPS
+        SELECT id, twitch_streamer_name, added_clips
         FROM twitch_streamer
-    </select>
-
-    <!-- Select TwitchStreamer by ID -->
-    <select id="selectStreamerById" parameterType="int" resultMap="TwitchStreamerResultMap">
-        SELECT ID, TwitchStreamerName, ADDED_CLIPS
-        FROM twitch_streamer
-        WHERE ID = #{id}
     </select>
 
     <!-- Select TwitchStreamer by broadcasterId -->
     <select id="selectByBroadcasterId" parameterType="String" resultMap="TwitchStreamerResultMap">
-        SELECT ID, TwitchStreamerName, ADDED_CLIPS
+        SELECT id, twitch_streamer_name, added_clips
         FROM twitch_streamer
-        WHERE BroadcasterId = #{broadcasterId}
+        WHERE broadcaster_id = #{broadcasterId}
+    </select>
+
+    <!-- Select TwitchStreamer by ID -->
+    <select id="selectStreamerById" parameterType="int" resultMap="TwitchStreamerResultMap">
+        SELECT id, twitch_streamer_name, added_clips
+        FROM twitch_streamer
+        WHERE id = #{id}
     </select>
 
     <!-- Insert TwitchStreamer -->
     <insert id="insertStreamer" parameterType="com.apa.clipfarmer.mapper.TwitchStreamerMapper" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO twitch_streamer (TwitchStreamerName, ADDED_CLIPS)
-        VALUES (#{twitchStreamerName}, #{addedClips, typeHandler=com.apa.clipfarmer.mapper.BLOBTypeHandler})
+        INSERT INTO twitch_streamer (twitch_streamer_name, added_clips, broadcaster_id)
+        VALUES (#{twitchStreamerName}, #{addedClips, typeHandler=com.apa.clipfarmer.mapper.BLOBTypeHandler}, #{broadcasterId})
     </insert>
+
 
     <!-- Update TwitchStreamer -->
     <update id="updateStreamer" parameterType="com.apa.clipfarmer.mapper.TwitchStreamerMapper">
         UPDATE twitch_streamer
-        SET TwitchStreamerName = #{twitchStreamerName}, ADDED_CLIPS = #{addedClips, typeHandler=com.apa.clipfarmer.mapper.BLOBTypeHandler}
-        WHERE ID = #{id}
+        SET twitch_streamer_name = #{twitchStreamerName}, added_clips = #{addedClips, typeHandler=com.apa.clipfarmer.mapper.BLOBTypeHandler}
+        WHERE id = #{id}
     </update>
 
     <!-- Delete TwitchStreamer -->
     <delete id="deleteStreamer" parameterType="int">
-        DELETE FROM twitch_streamer WHERE ID = #{id}
+        DELETE FROM twitch_streamer WHERE id = #{id}
     </delete>
 
 </mapper>

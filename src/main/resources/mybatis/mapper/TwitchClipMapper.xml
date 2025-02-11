@@ -9,27 +9,28 @@
         <result property="creatorName" column="CREATOR_NAME" />
         <result property="viewCount" column="VIEW_COUNT" />
         <result property="createdAt" column="CREATED_AT" />
+        <result property="streamerId" column="STREAMER_ID" />
     </resultMap>
 
     <select id="selectAllClips" resultMap="TwitchClipResultMap">
-        SELECT ID, CLIP_ID, TITLE, CREATOR_NAME, VIEW_COUNT, CREATED_AT
+        SELECT ID, CLIP_ID, TITLE, CREATOR_NAME, VIEW_COUNT, CREATED_AT, STREAMER_ID
         FROM twitch_clip
     </select>
 
     <select id="selectClipById" parameterType="int" resultMap="TwitchClipResultMap">
-        SELECT ID, CLIP_ID, TITLE, CREATOR_NAME, VIEW_COUNT, CREATED_AT
+        SELECT ID, CLIP_ID, TITLE, CREATOR_NAME, VIEW_COUNT, CREATED_AT, STREAMER_ID
         FROM twitch_clip
         WHERE ID = #{id}
     </select>
 
     <insert id="insertClip" parameterType="com.apa.clipfarmer.mapper.TwitchClipMapper" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO twitch_clip (CLIP_ID, TITLE, CREATOR_NAME, VIEW_COUNT, CREATED_AT)
-        VALUES (#{clipId}, #{title}, #{creatorName}, #{viewCount}, #{createdAt})
+        INSERT INTO twitch_clip (CLIP_ID, TITLE, CREATOR_NAME, VIEW_COUNT, CREATED_AT, STREAMER_ID)
+        VALUES (#{clipId}, #{title}, #{creatorName}, #{viewCount}, #{createdAt}, #{streamerId})
     </insert>
 
     <update id="updateClip" parameterType="com.apa.clipfarmer.mapper.TwitchClipMapper">
         UPDATE twitch_clip
-        SET CLIP_ID = #{clipId}, TITLE = #{title}, CREATOR_NAME = #{creatorName}, VIEW_COUNT = #{viewCount}, CREATED_AT = #{createdAt}
+        SET CLIP_ID = #{clipId}, TITLE = #{title}, CREATOR_NAME = #{creatorName}, VIEW_COUNT = #{viewCount}, CREATED_AT = #{createdAt}, STREAMER_ID = #{streamerId}
         WHERE ID = #{id}
     </update>
 

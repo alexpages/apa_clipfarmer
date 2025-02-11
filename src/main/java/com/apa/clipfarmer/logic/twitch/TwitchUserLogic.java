@@ -107,7 +107,7 @@ public class TwitchUserLogic {
             }
 
             TwitchStreamer twitchStreamer = new TwitchStreamer();
-            twitchStreamer.setStreamerName(streamerName);
+            twitchStreamer.setTwitchStreamerName(streamerName);
             twitchStreamer.setBroadcasterId(broadcasterId);
 
             session.insert("com.apa.clipfarmer.mapper.TwitchStreamerMapper.insertStreamer", twitchStreamer);
