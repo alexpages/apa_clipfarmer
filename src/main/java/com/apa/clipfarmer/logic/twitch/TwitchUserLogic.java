@@ -1,15 +1,22 @@
 package com.apa.clipfarmer.logic.twitch;
 
+import com.apa.clipfarmer.db.MyBatisConfig;
 import com.apa.clipfarmer.model.TwitchConstants;
+import com.apa.clipfarmer.model.TwitchStreamer;
 import com.apa.clipfarmer.utils.HttpUtils;
 import com.fasterxml.jackson.databind.JsonNode;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.ibatis.session.SqlSession;
+import org.apache.ibatis.session.SqlSessionFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -20,9 +27,12 @@ import java.util.Optional;
  *
  * @author alexpages
  */
-@UtilityClass
+@Service
+@RequiredArgsConstructor
 @Slf4j
 public class TwitchUserLogic {
+
+    private final SqlSessionFactory sqlSessionFactory;
 
     /**
      * Retrieves the broadcaster ID for a given streamer name.
@@ -31,7 +41,7 @@ public class TwitchUserLogic {
      * @param oAuthToken   the OAuth token for authentication.
      * @return the broadcaster ID.
      */
-    public static String getBroadcasterId(String streamerName, String oAuthToken) {
+    public String getBroadcasterId(String streamerName, String oAuthToken) {
         String url = UriComponentsBuilder.fromHttpUrl(TwitchConstants.TWITCH_USERS_API)
                 .queryParam("login", streamerName)
                 .toUriString();
@@ -71,10 +81,43 @@ public class TwitchUserLogic {
                 log.error("Failed to fetch broadcaster ID for streamer: {}", streamerName);
                 throw new IllegalArgumentException("Invalid broadcaster ID for streamer: " + streamerName);
             }
+
+            insertStreamerInDatabase(streamerName, broadcasterId);
+
             return broadcasterId;
         } catch (Exception e) {
             log.error("Unexpected error while fetching broadcaster ID: {}", e.getMessage(), e);
             throw new RuntimeException("Unexpected error occurred while fetching broadcaster ID.", e);
         }
     }
+
+    /**
+     * Inserts a TwitchStreamer into the database.
+     *
+     * @param streamerName  the name of the streamer.
+     * @param broadcasterId the ID of the broadcaster.
+     */
+    private void insertStreamerInDatabase(String streamerName, String broadcasterId) {
+        try (SqlSession session = sqlSessionFactory.openSession()) {
+            TwitchStreamer existingStreamer = session.selectOne("com.apa.clipfarmer.mapper.TwitchStreamerMapper.selectByBroadcasterId", broadcasterId);
+
+            if (existingStreamer != null) {
+                log.info("Streamer with broadcaster ID {} already exists. Skipping insertion.", broadcasterId);
+                return;
+            }
+
+            TwitchStreamer twitchStreamer = new TwitchStreamer();
+            twitchStreamer.setStreamerName(streamerName);
+            twitchStreamer.setBroadcasterId(broadcasterId);
+
+            session.insert("com.apa.clipfarmer.mapper.TwitchStreamerMapper.insertStreamer", twitchStreamer);
+            session.commit();
+            log.info("Streamer {} with broadcaster ID {} inserted into the database.", streamerName, broadcasterId);
+        } catch (Exception e) {
+            // Log the error and throw a RuntimeException if insertion fails
+            log.error("Error inserting streamer {} into the database: {}", streamerName, e.getMessage(), e);
+            throw new RuntimeException("Error inserting streamer into the database.", e);
+        }
+    }
+
 }

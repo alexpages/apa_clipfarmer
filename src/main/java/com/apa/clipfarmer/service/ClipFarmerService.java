@@ -3,13 +3,14 @@ package com.apa.clipfarmer.service;
 import com.apa.clipfarmer.logic.twitch.TwitchAuthLogic;
 import com.apa.clipfarmer.logic.twitch.TwitchClipFetcherLogic;
 import com.apa.clipfarmer.model.ClipFarmerArgs;
+import com.apa.clipfarmer.model.TwitchClip;
 import com.apa.clipfarmer.model.TwitchStreamerNameEnum;
 import com.beust.jcommander.JCommander;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.net.URL;
+import java.util.List;
 
 /**
  * Class to trigger the script
@@ -23,22 +24,14 @@ import java.net.URL;
 @Slf4j
 public class ClipFarmerService {
 
+    private final TwitchClipFetcherLogic twitchClipFetcherLogic;
+
     /**
      * Execute main batch
      *
      * @param args
      */
     public void execute(String[] args) {
-
-        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-        URL log4jConfig = classLoader.getResource("log4j2.xml");
-
-        if (log4jConfig != null) {
-            System.out.println("Found log4j2.xml: " + log4jConfig);
-        } else {
-            System.out.println("log4j2.xml NOT found in classpath!");
-        }
-
         final ClipFarmerArgs clipFarmerArgs;
         try {
             ClipFarmerArgs.Builder clipFarmerArgsBuilder = new ClipFarmerArgs.Builder();
@@ -57,7 +50,7 @@ public class ClipFarmerService {
             }
 
             String oAuthToken = TwitchAuthLogic.getOAuthToken();
-            String clips = TwitchClipFetcherLogic.getTwitchClips(twitchStreamerNameEnum.getName(), oAuthToken);
+            List<TwitchClip> clips = twitchClipFetcherLogic.getTwitchClips(twitchStreamerNameEnum.getName(), oAuthToken);
 
             System.out.println("Executing ClipFarmerService logic for streamer: " + twitchStreamerNameEnum.getName());
 

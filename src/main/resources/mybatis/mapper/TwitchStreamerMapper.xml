@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.apa.clipfarmer.mapper.TwitchStreamerMapper">
+
+    <!-- ResultMap for TwitchStreamer -->
+    <resultMap id="TwitchStreamerResultMap" type="com.apa.clipfarmer.mapper.TwitchStreamerMapper">
+        <id property="id" column="ID" />
+        <result property="twitchStreamerName" column="TwitchStreamerName" />
+        <result property="addedClips" column="ADDED_CLIPS" typeHandler="com.apa.clipfarmer.mapper.BLOBTypeHandler" />
+    </resultMap>
+
+    <!-- Select all TwitchStreamers -->
+    <select id="selectAllStreamers" resultMap="TwitchStreamerResultMap">
+        SELECT ID, TwitchStreamerName, ADDED_CLIPS
+        FROM twitch_streamer
+    </select>
+
+    <!-- Select TwitchStreamer by ID -->
+    <select id="selectStreamerById" parameterType="int" resultMap="TwitchStreamerResultMap">
+        SELECT ID, TwitchStreamerName, ADDED_CLIPS
+        FROM twitch_streamer
+        WHERE ID = #{id}
+    </select>
+
+    <!-- Select TwitchStreamer by broadcasterId -->
+    <select id="selectByBroadcasterId" parameterType="String" resultMap="TwitchStreamerResultMap">
+        SELECT ID, TwitchStreamerName, ADDED_CLIPS
+        FROM twitch_streamer
+        WHERE BroadcasterId = #{broadcasterId}
+    </select>
+
+    <!-- Insert TwitchStreamer -->
+    <insert id="insertStreamer" parameterType="com.apa.clipfarmer.mapper.TwitchStreamerMapper" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO twitch_streamer (TwitchStreamerName, ADDED_CLIPS)
+        VALUES (#{twitchStreamerName}, #{addedClips, typeHandler=com.apa.clipfarmer.mapper.BLOBTypeHandler})
+    </insert>
+
+    <!-- Update TwitchStreamer -->
+    <update id="updateStreamer" parameterType="com.apa.clipfarmer.mapper.TwitchStreamerMapper">
+        UPDATE twitch_streamer
+        SET TwitchStreamerName = #{twitchStreamerName}, ADDED_CLIPS = #{addedClips, typeHandler=com.apa.clipfarmer.mapper.BLOBTypeHandler}
+        WHERE ID = #{id}
+    </update>
+
+    <!-- Delete TwitchStreamer -->
+    <delete id="deleteStreamer" parameterType="int">
+        DELETE FROM twitch_streamer WHERE ID = #{id}
+    </delete>
+
+</mapper>

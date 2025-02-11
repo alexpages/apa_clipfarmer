@@ -1,19 +1,15 @@
-package com.apa.clipfarmer.model;
+package com.apa.clipfarmer.mapper;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import java.time.LocalDateTime;
 
 /**
- * Class that represents the TwitchClip model
+ * Class that represents the TwitchClip mapper from MyBatis
  *
  * @author alexpages
  */
 @Data
-@AllArgsConstructor
-public class TwitchClip {
+public class TwitchClipMapper {
 
     private int id;
     private String clipId;

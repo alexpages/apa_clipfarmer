@@ -17,7 +17,6 @@ public enum TwitchStreamerNameEnum {
 
     private final String name;
 
-
     /**
      * Returns the TwitchStreamerNameEnum from a String value
      *

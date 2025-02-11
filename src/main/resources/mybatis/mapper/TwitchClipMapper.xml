@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.apa.clipfarmer.mapper.TwitchClipMapper">
 
-    <resultMap id="TwitchClipResultMap" type="com.apa.clipfarmer.model.TwitchClip">
+    <resultMap id="TwitchClipResultMap" type="com.apa.clipfarmer.mapper.TwitchClipMapper">
         <id property="id" column="ID" />
         <result property="clipId" column="CLIP_ID" />
         <result property="title" column="TITLE" />
@@ -13,28 +13,28 @@
 
     <select id="selectAllClips" resultMap="TwitchClipResultMap">
         SELECT ID, CLIP_ID, TITLE, CREATOR_NAME, VIEW_COUNT, CREATED_AT
-        FROM TWITCH_CLIP
+        FROM twitch_clip
     </select>
 
     <select id="selectClipById" parameterType="int" resultMap="TwitchClipResultMap">
         SELECT ID, CLIP_ID, TITLE, CREATOR_NAME, VIEW_COUNT, CREATED_AT
-        FROM TWITCH_CLIP
+        FROM twitch_clip
         WHERE ID = #{id}
     </select>
 
-    <insert id="insertClip" parameterType="com.apa.clipfarmer.model.TwitchClip" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO TWITCH_CLIP (CLIP_ID, TITLE, CREATOR_NAME, VIEW_COUNT, CREATED_AT)
+    <insert id="insertClip" parameterType="com.apa.clipfarmer.mapper.TwitchClipMapper" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO twitch_clip (CLIP_ID, TITLE, CREATOR_NAME, VIEW_COUNT, CREATED_AT)
         VALUES (#{clipId}, #{title}, #{creatorName}, #{viewCount}, #{createdAt})
     </insert>
 
-    <update id="updateClip" parameterType="com.apa.clipfarmer.model.TwitchClip">
-        UPDATE TWITCH_CLIP
+    <update id="updateClip" parameterType="com.apa.clipfarmer.mapper.TwitchClipMapper">
+        UPDATE twitch_clip
         SET CLIP_ID = #{clipId}, TITLE = #{title}, CREATOR_NAME = #{creatorName}, VIEW_COUNT = #{viewCount}, CREATED_AT = #{createdAt}
         WHERE ID = #{id}
     </update>
 
     <delete id="deleteClip" parameterType="int">
-        DELETE FROM TWITCH_CLIP WHERE ID = #{id}
+        DELETE FROM twitch_clip WHERE ID = #{id}
     </delete>
 
 </mapper>
