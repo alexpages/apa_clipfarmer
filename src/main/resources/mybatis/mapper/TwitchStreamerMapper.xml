@@ -2,8 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.apa.clipfarmer.mapper.TwitchStreamerMapper">
 
-    <!-- ResultMap for TwitchStreamer -->
-    <resultMap id="TwitchStreamerResultMap" type="com.apa.clipfarmer.mapper.TwitchStreamerMapper">
+    <resultMap id="TwitchStreamerResultMap" type="com.apa.clipfarmer.model.TwitchStreamer">
         <id property="id" column="id" />
         <result property="twitchStreamerName" column="twitch_streamer_name" />
         <result property="broadcasterId" column="broadcaster_id" />
