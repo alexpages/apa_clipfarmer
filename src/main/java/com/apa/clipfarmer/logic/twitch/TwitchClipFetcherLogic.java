@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -101,12 +102,13 @@ public class TwitchClipFetcherLogic {
                 LocalDateTime createdAt = LocalDateTime.parse(createdAtString, DateTimeFormatter.ISO_DATE_TIME);
 
                 TwitchClip twitchClip = new TwitchClip(
-                        clipNode.get("id").asInt(),
+                        null,
                         clipNode.get("id").asText(),
                         clipNode.get("title").asText(),
-                        clipNode.get("creator_name").asText(),
+                        clipNode.get("creator_name").asText().toLowerCase(),
                         clipNode.get("view_count").asInt(),
-                        createdAt
+                        createdAt,
+                        clipNode.get("broadcaster_id").asText()
                 );
                 twitchClips.add(twitchClip);
             });

@@ -3,8 +3,9 @@
         PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
         "https://mybatis.org/dtd/mybatis-3-config.dtd">
 <configuration>
+
     <typeHandlers>
-        <typeHandler handler="com.apa.clipfarmer.mapper.BLOBTypeHandler"/>
+        <typeHandler handler="com.apa.clipfarmer.typehandler.LocalDateTimeTypeHandler" javaType="java.time.LocalDateTime"/>
     </typeHandlers>
 
     <environments default="development">

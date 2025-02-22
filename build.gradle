@@ -49,8 +49,9 @@ dependencies {
 
     // DB
     implementation group: 'mysql', name: 'mysql-connector-java', version: '8.0.33'
-    implementation group: 'org.mybatis', name: 'mybatis-spring', version: '3.0.4'
     implementation group: 'org.mybatis', name: 'mybatis', version: '3.5.19'
+    implementation group: 'org.mybatis', name: 'mybatis-spring', version: '3.0.4'
+
 //    implementation group: 'org.mybatis.generator', name: 'mybatis-generator-core', version: '1.4.2'
 //    implementation group: 'jakarta.persistence', name: 'jakarta.persistence-api', version: '3.2.0'
 
