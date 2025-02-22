@@ -1,21 +1,26 @@
 package com.apa.clipfarmer.mapper;
 
-import lombok.Data;
-import java.time.LocalDateTime;
+import com.apa.clipfarmer.model.TwitchClip;
+import org.apache.ibatis.annotations.Mapper;
+import java.util.List;
 
 /**
- * Class that represents the TwitchClip mapper from MyBatis
+ * MyBatis Mapper Interface for TwitchClip database operations.
  *
  * @author alexpages
  */
-@Data
-public class TwitchClipMapper {
+@Mapper
+public interface TwitchClipMapper {
 
-    private int id;
-    private String clipId;
-    private String title;
-    private String creatorName;
-    private int viewCount;
-    private LocalDateTime createdAt;
+    List<TwitchClip> selectAllClips();
 
+    TwitchClip selectClipById(int id);
+
+    TwitchClip selectClipByClipId(String clipId);
+
+    void insertClip(TwitchClip clip);
+
+    void updateClip(TwitchClip clip);
+
+    void deleteClip(int id);
 }

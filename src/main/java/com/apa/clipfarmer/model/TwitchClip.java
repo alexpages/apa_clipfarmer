@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 
 /**
  * Class that represents the TwitchClip model
@@ -15,11 +16,11 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class TwitchClip {
 
-    private int id;
+    private Long id;
     private String clipId;
     private String title;
     private String creatorName;
-    private int viewCount;
+    private Integer viewCount;
     private LocalDateTime createdAt;
-
+    private String broadcasterId;
 }

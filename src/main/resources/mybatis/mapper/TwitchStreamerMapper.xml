@@ -6,40 +6,39 @@
         <id property="id" column="id" />
         <result property="twitchStreamerName" column="twitch_streamer_name" />
         <result property="broadcasterId" column="broadcaster_id" />
-        <result property="addedClips" column="added_clips" typeHandler="com.apa.clipfarmer.mapper.BLOBTypeHandler" />
     </resultMap>
 
     <!-- Select all TwitchStreamers -->
     <select id="selectAllStreamers" resultMap="TwitchStreamerResultMap">
-        SELECT id, twitch_streamer_name, added_clips
+        SELECT id, twitch_streamer_name
         FROM twitch_streamer
     </select>
 
     <!-- Select TwitchStreamer by broadcasterId -->
     <select id="selectByBroadcasterId" parameterType="String" resultMap="TwitchStreamerResultMap">
-        SELECT id, twitch_streamer_name, added_clips
+        SELECT id, twitch_streamer_name
         FROM twitch_streamer
         WHERE broadcaster_id = #{broadcasterId}
     </select>
 
     <!-- Select TwitchStreamer by ID -->
     <select id="selectStreamerById" parameterType="int" resultMap="TwitchStreamerResultMap">
-        SELECT id, twitch_streamer_name, added_clips
+        SELECT id, twitch_streamer_name
         FROM twitch_streamer
         WHERE id = #{id}
     </select>
 
     <!-- Insert TwitchStreamer -->
-    <insert id="insertStreamer" parameterType="com.apa.clipfarmer.mapper.TwitchStreamerMapper" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO twitch_streamer (twitch_streamer_name, added_clips, broadcaster_id)
-        VALUES (#{twitchStreamerName}, #{addedClips, typeHandler=com.apa.clipfarmer.mapper.BLOBTypeHandler}, #{broadcasterId})
+    <insert id="insertStreamer" parameterType="com.apa.clipfarmer.model.TwitchStreamer" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO twitch_streamer (twitch_streamer_name, broadcaster_id)
+        VALUES (#{twitchStreamerName}, #{broadcasterId})
     </insert>
 
 
     <!-- Update TwitchStreamer -->
-    <update id="updateStreamer" parameterType="com.apa.clipfarmer.mapper.TwitchStreamerMapper">
+    <update id="updateStreamer" parameterType="com.apa.clipfarmer.model.TwitchStreamer">
         UPDATE twitch_streamer
-        SET twitch_streamer_name = #{twitchStreamerName}, added_clips = #{addedClips, typeHandler=com.apa.clipfarmer.mapper.BLOBTypeHandler}
+        SET twitch_streamer_name = #{twitchStreamerName}
         WHERE id = #{id}
     </update>
 

@@ -1,20 +1,28 @@
 package com.apa.clipfarmer.mapper;
 
-import lombok.Data;
+import com.apa.clipfarmer.model.TwitchStreamer;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
-import java.util.ArrayList;
+import java.util.List;
 
 /**
- * Class that represents the TwitchStreamer model
+ * Interface for TwitchStreamer data access operations.
  *
  * @author alexpages
  */
-@Data
-public class TwitchStreamerMapper {
+@Mapper
+public interface TwitchStreamerMapper {
 
-    private int id;
-    private String twitchStreamerName;
-    private String broadcasterId;
-    private ArrayList<String> addedClips;
+    List<TwitchStreamer> selectAllStreamers();
 
+    TwitchStreamer selectByBroadcasterId(@Param("broadcasterId") String broadcasterId);
+
+    TwitchStreamer selectStreamerById(@Param("id") int id);
+
+    void insertStreamer(TwitchStreamer twitchStreamer);
+
+    void updateStreamer(TwitchStreamer twitchStreamer);
+
+    void deleteStreamer(@Param("id") int id);
 }
