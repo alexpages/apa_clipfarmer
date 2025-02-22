@@ -10,7 +10,6 @@ CREATE TABLE twitch_streamer (
     id INT NOT NULL AUTO_INCREMENT,
     twitch_streamer_name VARCHAR(255) NOT NULL,
     broadcaster_id VARCHAR(255) NOT NULL UNIQUE,
-    added_clips BLOB,
     PRIMARY KEY (id)
 );
 
