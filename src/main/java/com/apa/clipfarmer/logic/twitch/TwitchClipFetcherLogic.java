@@ -38,7 +38,6 @@ import java.util.List;
 public class TwitchClipFetcherLogic {
 
     private final TwitchUserLogic twitchUserLogic;
-
     private static final int STARTED_AT = 5;
 
     /**
@@ -92,15 +91,14 @@ public class TwitchClipFetcherLogic {
             JsonNode jsonNode = objectMapper.readTree(responseBody.getBody());
             if (!jsonNode.has("data") || !jsonNode.get("data").isArray()) {
                 log.warn("No clip data found.");
-                return twitchClips; // Return empty list if no "data" is found
+                return twitchClips;
             }
-
             ArrayNode clipsArray = (ArrayNode) jsonNode.get("data");
+
             clipsArray.forEach(clipNode -> {
-                // Parse the created_at string into LocalDateTime
+
                 String createdAtString = clipNode.get("created_at").asText();
                 LocalDateTime createdAt = LocalDateTime.parse(createdAtString, DateTimeFormatter.ISO_DATE_TIME);
-
                 TwitchClip twitchClip = new TwitchClip(
                         null,
                         clipNode.get("id").asText(),
@@ -108,13 +106,13 @@ public class TwitchClipFetcherLogic {
                         clipNode.get("creator_name").asText().toLowerCase(),
                         clipNode.get("view_count").asInt(),
                         createdAt,
-                        clipNode.get("broadcaster_id").asText()
+                        clipNode.get("broadcaster_id").asText(),
+                        clipNode.get("url").asText()
                 );
                 twitchClips.add(twitchClip);
             });
-
-            // Sort clips by view count in descending order
             twitchClips.sort(Comparator.comparingInt(TwitchClip::getViewCount).reversed());
+
         } catch (IOException e) {
             log.error("Error parsing response body: {}", e.getMessage(), e);
         }

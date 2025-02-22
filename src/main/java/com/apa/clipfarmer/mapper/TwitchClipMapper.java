@@ -20,7 +20,4 @@ public interface TwitchClipMapper {
 
     void insertClip(TwitchClip clip);
 
-    void updateClip(TwitchClip clip);
-
-    void deleteClip(int id);
 }

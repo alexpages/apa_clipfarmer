@@ -23,4 +23,5 @@ public class TwitchClip {
     private Integer viewCount;
     private LocalDateTime createdAt;
     private String broadcasterId;
+    private String url;
 }

@@ -20,6 +20,7 @@ CREATE TABLE twitch_clip (
     title VARCHAR(255) NOT NULL,
     creator_name VARCHAR(255) NOT NULL,
     broadcaster_id VARCHAR(255),
+    url VARCHAR(255),
     view_count INT NOT NULL,
     created_at DATETIME NOT NULL,
     PRIMARY KEY (id),

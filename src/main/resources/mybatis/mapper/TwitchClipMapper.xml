@@ -11,38 +11,30 @@
         <result property="viewCount" column="VIEW_COUNT" />
         <result property="createdAt" column="CREATED_AT" typeHandler="com.apa.clipfarmer.typehandler.LocalDateTimeTypeHandler" />
         <result property="broadcasterId" column="BROADCASTER_ID" />
+        <result property="url" column="URL" />
     </resultMap>
 
     <select id="selectAllClips" resultMap="TwitchClipResultMap">
-        SELECT ID, CLIP_ID, TITLE, CREATOR_NAME, VIEW_COUNT, CREATED_AT, BROADCASTER_ID
+        SELECT ID, CLIP_ID, TITLE, CREATOR_NAME, VIEW_COUNT, CREATED_AT, BROADCASTER_ID, URL
         FROM twitch_clip
     </select>
 
     <select id="selectClipById" parameterType="int" resultMap="TwitchClipResultMap">
-        SELECT ID, CLIP_ID, TITLE, CREATOR_NAME, VIEW_COUNT, CREATED_AT, BROADCASTER_ID
+        SELECT ID, CLIP_ID, TITLE, CREATOR_NAME, VIEW_COUNT, CREATED_AT, BROADCASTER_ID, URL
         FROM twitch_clip
         WHERE ID = #{id}
     </select>
 
     <select id="selectClipByClipId" parameterType="String" resultMap="TwitchClipResultMap">
-        SELECT ID, CLIP_ID, TITLE, CREATOR_NAME, VIEW_COUNT, CREATED_AT, BROADCASTER_ID
+        SELECT ID, CLIP_ID, TITLE, CREATOR_NAME, VIEW_COUNT, CREATED_AT, BROADCASTER_ID, URL
         FROM twitch_clip
         WHERE CLIP_ID = #{clipId}
     </select>
 
     <insert id="insertClip" parameterType="com.apa.clipfarmer.model.TwitchClip" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO twitch_clip (CLIP_ID, TITLE, CREATOR_NAME, VIEW_COUNT, CREATED_AT, BROADCASTER_ID)
-        VALUES (#{clipId}, #{title}, #{creatorName}, #{viewCount}, #{createdAt}, #{broadcasterId})
+        INSERT INTO twitch_clip (CLIP_ID, TITLE, CREATOR_NAME, VIEW_COUNT, CREATED_AT, BROADCASTER_ID, URL)
+        VALUES (#{clipId}, #{title}, #{creatorName}, #{viewCount}, #{createdAt}, #{broadcasterId}, #{url})
     </insert>
 
-    <update id="updateClip" parameterType="com.apa.clipfarmer.model.TwitchClip">
-        UPDATE twitch_clip
-        SET CLIP_ID = #{clipId}, TITLE = #{title}, CREATOR_NAME = #{creatorName}, VIEW_COUNT = #{viewCount}, CREATED_AT = #{createdAt}, BROADCASTER_ID = #{broadcasterId}
-        WHERE ID = #{id}
-    </update>
-
-    <delete id="deleteClip" parameterType="int">
-        DELETE FROM twitch_clip WHERE ID = #{id}
-    </delete>
 
 </mapper>
