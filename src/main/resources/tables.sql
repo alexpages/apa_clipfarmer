@@ -9,7 +9,7 @@ DROP TABLE IF EXISTS twitch_streamer;
 CREATE TABLE twitch_streamer (
     id INT NOT NULL AUTO_INCREMENT,
     twitch_streamer_name VARCHAR(255) NOT NULL,
-    broadcaster_id VARCHAR(255) NOT NULL,
+    broadcaster_id VARCHAR(255) NOT NULL UNIQUE,
     added_clips BLOB,
     PRIMARY KEY (id)
 );
@@ -20,9 +20,9 @@ CREATE TABLE twitch_clip (
     clip_id VARCHAR(255) NOT NULL UNIQUE,
     title VARCHAR(255) NOT NULL,
     creator_name VARCHAR(255) NOT NULL,
+    broadcaster_id VARCHAR(255),
     view_count INT NOT NULL,
     created_at DATETIME NOT NULL,
-    streamer_id INT, -- Add streamerId to relate clips to streamers
     PRIMARY KEY (id),
-    FOREIGN KEY (streamer_id) REFERENCES twitch_streamer(id) ON DELETE SET NULL
+    FOREIGN KEY (broadcaster_id) REFERENCES twitch_streamer(broadcaster_id) ON DELETE SET NULL
 );
