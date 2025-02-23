@@ -2,8 +2,6 @@ package com.apa.clipfarmer.model;
 
 import lombok.Data;
 
-import java.util.ArrayList;
-
 /**
  * Class that represents the TwitchStreamer model
  *

@@ -2,6 +2,7 @@ package com.apa.clipfarmer.mapper;
 
 import com.apa.clipfarmer.model.TwitchClip;
 import org.apache.ibatis.annotations.Mapper;
+
 import java.util.List;
 
 /**

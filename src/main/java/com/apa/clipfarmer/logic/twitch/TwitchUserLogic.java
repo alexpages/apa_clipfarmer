@@ -1,16 +1,13 @@
 package com.apa.clipfarmer.logic.twitch;
 
-import com.apa.clipfarmer.db.MyBatisConfig;
 import com.apa.clipfarmer.model.TwitchConstants;
 import com.apa.clipfarmer.model.TwitchStreamer;
 import com.apa.clipfarmer.utils.HttpUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
