@@ -1,6 +1,7 @@
 package com.apa.clipfarmer.service;
 
 import com.apa.clipfarmer.logic.twitch.TwitchAuthLogic;
+import com.apa.clipfarmer.logic.twitch.TwitchClipDownloader;
 import com.apa.clipfarmer.logic.twitch.TwitchClipFetcherLogic;
 import com.apa.clipfarmer.mapper.TwitchClipMapper;
 import com.apa.clipfarmer.model.ClipFarmerArgs;
@@ -16,9 +17,10 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 /**
- * Class to trigger the script
- * A twitch streamer will be selected with the key and executed depending on the values passed
- * through the command line.
+ * Service that accepts a twitch streamer through the command line as param.
+ * This service fetches clips, downloads them and uploads them to a Youtube channel.
+ *
+ * @author alexpages
  */
 @Service
 @RequiredArgsConstructor
@@ -26,6 +28,7 @@ import java.util.List;
 public class ClipFarmerService {
 
     private final TwitchClipFetcherLogic twitchClipFetcherLogic;
+    private final TwitchClipDownloader twitchClipDownloader;
     private final SqlSessionFactory sqlSessionFactory;
 
     /**
@@ -51,8 +54,10 @@ public class ClipFarmerService {
         }
 
         try (SqlSession session = sqlSessionFactory.openSession()){
+
             // Retrieve Twitch Token
             String oAuthToken = TwitchAuthLogic.getOAuthToken();
+
             // Get List of clips for that streamer
             List<TwitchClip> lTwitchClip = twitchClipFetcherLogic.getTwitchClips(twitchStreamerNameEnum.getName(), oAuthToken);
             TwitchClipMapper mapper = session.getMapper(TwitchClipMapper.class);
@@ -65,6 +70,9 @@ public class ClipFarmerService {
                         log.info("Clip {} already exists in DB, skipping.", twitchClip.getClipId());
                         continue;
                     }
+                    // Download clip
+                    twitchClipDownloader.downloadFile(twitchClip.getUrl());
+
                     // Save the clip to the database
                     mapper.insertClip(twitchClip);
                     session.commit();

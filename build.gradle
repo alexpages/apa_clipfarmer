@@ -36,6 +36,8 @@ dependencies {
     implementation group: 'org.projectlombok', name: 'lombok', version: '1.18.36'
     annotationProcessor 'org.projectlombok:lombok:1.18.36'
     implementation group: 'org.apache.httpcomponents.client5', name: 'httpclient5', version: '5.4.2'
+    implementation group: 'org.jsoup', name: 'jsoup', version: '1.18.3' //TODO delete
+    implementation group: 'org.json', name: 'json', version: '20210307'
 
     // Spring
     implementation group: 'org.springframework.boot', name: 'spring-boot-starter', version: '3.4.2'
