@@ -2,7 +2,7 @@ package com.apa.clipfarmer.service;
 
 import com.apa.clipfarmer.logic.twitch.TwitchAuthLogic;
 import com.apa.clipfarmer.logic.twitch.TwitchClipDownloader;
-import com.apa.clipfarmer.logic.twitch.TwitchClipRetriever;
+import com.apa.clipfarmer.logic.twitch.TwitchClipFetcherLogic;
 import com.apa.clipfarmer.mapper.TwitchClipMapper;
 import com.apa.clipfarmer.model.ClipFarmerArgs;
 import com.apa.clipfarmer.model.TwitchClip;
@@ -27,7 +27,7 @@ import java.util.List;
 @Slf4j
 public class ClipFarmerService {
 
-    private final TwitchClipRetriever twitchClipRetriever;
+    private final TwitchClipFetcherLogic twitchClipFetcherLogic;
     private final TwitchClipDownloader twitchClipDownloader;
     private final SqlSessionFactory sqlSessionFactory;
 
@@ -55,7 +55,7 @@ public class ClipFarmerService {
         if (oAuthToken == null) return;
 
         try (SqlSession session = sqlSessionFactory.openSession()) {
-            List<TwitchClip> twitchClips = twitchClipRetriever.getTwitchClips(
+            List<TwitchClip> twitchClips = twitchClipFetcherLogic.getTwitchClips(
                     twitchStreamer.getName(), oAuthToken, CLIP_DURATION);
             TwitchClipMapper mapper = session.getMapper(TwitchClipMapper.class);
 
