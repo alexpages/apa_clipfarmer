@@ -1,7 +1,6 @@
 package com.apa.clipfarmer.model;
 
 import lombok.experimental.UtilityClass;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Utility class to store all Twitch constants
@@ -9,8 +8,7 @@ import lombok.extern.slf4j.Slf4j;
  * @author alexpages
  */
 @UtilityClass
-@Slf4j
-public final class TwitchConstants {
+public class TwitchConstants {
 
     public static final String TWITCH_CLIENT_SECRET = System.getenv("TWITCH_CLIENT_SECRET");
     public static final String TWITCH_CLIENT_ID = System.getenv("TWITCH_CLIENT_ID");
