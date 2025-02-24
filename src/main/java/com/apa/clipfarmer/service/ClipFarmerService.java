@@ -17,8 +17,8 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 /**
- * Service that accepts a twitch streamer through the command line as param.
- * This service fetches clips, downloads them and uploads them to a Youtube channel.
+ * Service that accepts a Twitch streamer through the command line as a parameter.
+ * This service fetches clips, downloads them, and uploads them to a YouTube channel.
  *
  * @author alexpages
  */
@@ -34,61 +34,91 @@ public class ClipFarmerService {
     /**
      * The duration of a clip in seconds.
      */
-    private final int clipDuration = 10;
+    private static final int CLIP_DURATION = 10;
 
     /**
-     * Execute main batch
+     * Execute main batch process.
      *
      * @param args Command-line arguments
      */
     public void execute(String[] args) {
-        ClipFarmerArgs clipFarmerArgs;
-        try {
-            ClipFarmerArgs.Builder clipFarmerArgsBuilder = new ClipFarmerArgs.Builder();
-            new JCommander(clipFarmerArgsBuilder).parse(args);
-            clipFarmerArgs = clipFarmerArgsBuilder.build();
-        } catch (Exception e) {
-            log.warn("Invalid arguments: {}", e.getMessage());
-            return;
-        }
+        ClipFarmerArgs clipFarmerArgs = parseArguments(args);
+        if (clipFarmerArgs == null) return;
 
-        TwitchStreamerNameEnum twitchStreamerNameEnum = clipFarmerArgs.getTwitchStreamerNameEnum();
-        if (TwitchStreamerNameEnum.INVALID.equals(twitchStreamerNameEnum)) {
+        TwitchStreamerNameEnum twitchStreamer = clipFarmerArgs.getTwitchStreamerNameEnum();
+        if (TwitchStreamerNameEnum.INVALID.equals(twitchStreamer)) {
             log.warn("Twitch streamer is not present in list or was null");
             return;
         }
 
-        try (SqlSession session = sqlSessionFactory.openSession()){
+        String oAuthToken = retrieveOAuthToken();
+        if (oAuthToken == null) return;
 
-            // Retrieve Twitch Token
-            String oAuthToken = TwitchAuthLogic.getOAuthToken();
-            log.info("oAuthToken has been retrieved: [{}]", oAuthToken);
-
-            List<TwitchClip> lTwitchClip = twitchClipFetcherLogic.getTwitchClips(
-                    twitchStreamerNameEnum.getName(),
-                    oAuthToken,
-                    clipDuration);
+        try (SqlSession session = sqlSessionFactory.openSession()) {
+            List<TwitchClip> twitchClips = twitchClipFetcherLogic.getTwitchClips(
+                    twitchStreamer.getName(), oAuthToken, CLIP_DURATION);
             TwitchClipMapper mapper = session.getMapper(TwitchClipMapper.class);
 
-            for (TwitchClip twitchClip : lTwitchClip) {
-                try {
-                    // Check if the clip already exists in DB
-                    if (mapper.selectClipByClipId(twitchClip.getClipId()) != null) {
-                        log.info("Clip {} already exists in DB, skipping.", twitchClip.getClipId());
-                        continue;
-                    }
-
-                    twitchClipDownloader.downloadFile(twitchClip.getUrl());
-                    mapper.insertClip(twitchClip);
-                    session.commit();
-                    log.info("Inserted new clip {} into the database.", twitchClip.getClipId());
-                    return;
-                } catch (Exception e) {
-                    log.error("Error processing clip {}: {}", twitchClip.getClipId(), e.getMessage(), e);
-                }
+            for (TwitchClip clip : twitchClips) {
+                processClip(clip, mapper, session);
             }
         } catch (Exception e) {
             log.error("Unexpected error during execution", e);
+        }
+    }
+
+    /**
+     * Parses command-line arguments into ClipFarmerArgs.
+     *
+     * @param args Command-line arguments
+     * @return Parsed ClipFarmerArgs or null if invalid.
+     */
+    private ClipFarmerArgs parseArguments(String[] args) {
+        try {
+            ClipFarmerArgs.Builder clipFarmerArgsBuilder = new ClipFarmerArgs.Builder();
+            new JCommander(clipFarmerArgsBuilder).parse(args);
+            return clipFarmerArgsBuilder.build();
+        } catch (Exception e) {
+            log.warn("Invalid arguments: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Retrieves the Twitch OAuth token.
+     *
+     * @return OAuth token as a String, or null if retrieval fails.
+     */
+    private String retrieveOAuthToken() {
+        try {
+            String token = TwitchAuthLogic.getOAuthToken();
+            log.info("OAuth token has been retrieved: [{}]", token);
+            return token;
+        } catch (Exception e) {
+            log.error("Failed to retrieve OAuth token", e);
+            return null;
+        }
+    }
+
+    /**
+     * Processes a single Twitch clip by checking its existence, downloading it, and inserting it into the database.
+     *
+     * @param twitchClip The clip to process.
+     * @param mapper     The TwitchClipMapper instance.
+     * @param session    The SQL session.
+     */
+    private void processClip(TwitchClip twitchClip, TwitchClipMapper mapper, SqlSession session) {
+        try {
+            if (mapper.selectClipByClipId(twitchClip.getClipId()) != null) {
+                log.info("Clip {} already exists in DB, skipping.", twitchClip.getClipId());
+                return;
+            }
+            twitchClipDownloader.downloadFile(twitchClip.getUrl(), twitchClip);
+            mapper.insertClip(twitchClip);
+            session.commit();
+            log.info("Inserted new clip {} into the database.", twitchClip.getClipId());
+        } catch (Exception e) {
+            log.error("Error processing clip {}: {}", twitchClip.getClipId(), e.getMessage(), e);
         }
     }
 }

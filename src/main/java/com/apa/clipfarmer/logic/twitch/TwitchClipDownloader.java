@@ -1,5 +1,6 @@
 package com.apa.clipfarmer.logic.twitch;
 
+import com.apa.clipfarmer.model.TwitchClip;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
@@ -37,7 +38,7 @@ public class TwitchClipDownloader {
      *
      * @param clipUrl     the URL of the Twitch clip
      */
-    public void downloadFile(String clipUrl) {
+    public void downloadFile(String clipUrl, TwitchClip twitchClip) {
         log.info("Starting download for clip: {}", clipUrl);
 
         String clipSlug = extractClipSlug(clipUrl);
@@ -53,8 +54,13 @@ public class TwitchClipDownloader {
             return;
         }
         log.info("Clip video URL has been extracted successfully: {}", oVideoUrl.get());
-
-        String outputFileName = OUTPUT_FOLDER + "clip_" + System.currentTimeMillis() + ".mp4";
+        String outputFileName = String.format(
+                "%sclip_%s_%s_%s.mp4",
+                OUTPUT_FOLDER,
+                twitchClip.getLanguage(),
+                twitchClip.getBroadcasterId(),
+                twitchClip.getClipId()
+        );
         downloadVideo(oVideoUrl.get(), outputFileName);
     }
 

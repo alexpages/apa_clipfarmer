@@ -13,28 +13,29 @@
         <result property="broadcasterId" column="BROADCASTER_ID" />
         <result property="url" column="URL" />
         <result property="duration" column="DURATION" />
+        <result property="language" column="LANGUAGE" />
     </resultMap>
 
     <select id="selectAllClips" resultMap="TwitchClipResultMap">
-        SELECT ID, CLIP_ID, TITLE, CREATOR_NAME, VIEW_COUNT, CREATED_AT, BROADCASTER_ID, URL, DURATION
+        SELECT ID, CLIP_ID, TITLE, CREATOR_NAME, VIEW_COUNT, CREATED_AT, BROADCASTER_ID, URL, DURATION, LANGUAGE
         FROM twitch_clip
     </select>
 
     <select id="selectClipById" parameterType="int" resultMap="TwitchClipResultMap">
-        SELECT ID, CLIP_ID, TITLE, CREATOR_NAME, VIEW_COUNT, CREATED_AT, BROADCASTER_ID, URL, DURATION
+        SELECT ID, CLIP_ID, TITLE, CREATOR_NAME, VIEW_COUNT, CREATED_AT, BROADCASTER_ID, URL, DURATION, LANGUAGE
         FROM twitch_clip
         WHERE ID = #{id}
     </select>
 
     <select id="selectClipByClipId" parameterType="String" resultMap="TwitchClipResultMap">
-        SELECT ID, CLIP_ID, TITLE, CREATOR_NAME, VIEW_COUNT, CREATED_AT, BROADCASTER_ID, URL, DURATION
+        SELECT ID, CLIP_ID, TITLE, CREATOR_NAME, VIEW_COUNT, CREATED_AT, BROADCASTER_ID, URL, DURATION, LANGUAGE
         FROM twitch_clip
         WHERE CLIP_ID = #{clipId}
     </select>
 
     <insert id="insertClip" parameterType="com.apa.clipfarmer.model.TwitchClip" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO twitch_clip (CLIP_ID, TITLE, CREATOR_NAME, VIEW_COUNT, CREATED_AT, BROADCASTER_ID, URL, DURATION)
-        VALUES (#{clipId}, #{title}, #{creatorName}, #{viewCount}, #{createdAt}, #{broadcasterId}, #{url}, #{duration})
+        INSERT INTO twitch_clip (CLIP_ID, TITLE, CREATOR_NAME, VIEW_COUNT, CREATED_AT, BROADCASTER_ID, URL, DURATION, LANGUAGE)
+        VALUES (#{clipId}, #{title}, #{creatorName}, #{viewCount}, #{createdAt}, #{broadcasterId}, #{url}, #{duration}, #{language})
     </insert>
 
 

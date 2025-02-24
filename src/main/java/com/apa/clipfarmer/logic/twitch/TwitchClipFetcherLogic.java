@@ -108,7 +108,8 @@ public class TwitchClipFetcherLogic {
                                 createdAt,
                                 clipNode.get("broadcaster_id").asText(),
                                 clipNode.get("url").asText(),
-                                clipNode.get("duration").asInt()
+                                clipNode.get("duration").asInt(),
+                                clipNode.get("language").asText()
                         );
                     })
                     .filter(clip -> clip.getDuration() >= durationOfClip) // Remove clips with duration < 10
@@ -121,5 +122,4 @@ public class TwitchClipFetcherLogic {
         }
         return twitchClips;
     }
-
 }

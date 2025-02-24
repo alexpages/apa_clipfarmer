@@ -23,4 +23,5 @@ public class TwitchClip {
     private String broadcasterId;
     private String url;
     private int duration; // in seconds
+    private String language;
 }

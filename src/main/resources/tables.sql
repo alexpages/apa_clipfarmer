@@ -24,6 +24,7 @@ CREATE TABLE twitch_clip (
     view_count INT NOT NULL,
     created_at DATETIME NOT NULL,
     duration INT NOT NULL,
+    language VARCHAR(255) NOT NULL,
     PRIMARY KEY (id),
     FOREIGN KEY (broadcaster_id) REFERENCES twitch_streamer(broadcaster_id) ON DELETE SET NULL
 );
