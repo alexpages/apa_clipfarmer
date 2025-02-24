@@ -24,6 +24,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 /**
  * Fetches and processes the most viewed Twitch clips for a specific streamer.
@@ -46,14 +48,13 @@ public class TwitchClipFetcherLogic {
      * @param oAuthToken   The OAuth token for authentication.
      * @return A list of sorted TwitchClip objects.
      */
-    public List<TwitchClip> getTwitchClips(String streamerName, String oAuthToken) {
+    public List<TwitchClip> getTwitchClips(String streamerName, String oAuthToken, int durationOfClip) {
         String broadcasterId = twitchUserLogic.getBroadcasterId(streamerName, oAuthToken);
         String url = UriComponentsBuilder.fromHttpUrl(TwitchConstants.TWITCH_CLIP_API)
                 .queryParam("broadcaster_id", broadcasterId)
                 .queryParam("started_at", Instant.now().minus(STARTED_AT, ChronoUnit.DAYS)) // Clips from 5 days ago
                 .toUriString();
 
-        // Set up headers for the request
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("Authorization", "Bearer " + oAuthToken);
@@ -66,7 +67,7 @@ public class TwitchClipFetcherLogic {
             ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
             log.info("Response from Twitch Clip API: {}", response.getBody());
 
-            return convertResponseBodyToTwitchClips(response);
+            return convertResponseBodyToTwitchClips(response, durationOfClip);
         } catch (Exception e) {
             log.error("Error fetching clips for streamer {}: {}", streamerName, e.getMessage(), e);
             throw new RuntimeException("Failed to fetch Twitch clips.", e);
@@ -79,7 +80,7 @@ public class TwitchClipFetcherLogic {
      * @param responseBody The response body from the RestTemplate call.
      * @return A list of sorted TwitchClip objects.
      */
-    private static List<TwitchClip> convertResponseBodyToTwitchClips(ResponseEntity<String> responseBody) {
+    private static List<TwitchClip> convertResponseBodyToTwitchClips(ResponseEntity<String> responseBody, int durationOfClip) {
         List<TwitchClip> twitchClips = new ArrayList<>();
         if (!responseBody.hasBody()) {
             return twitchClips;
@@ -94,28 +95,31 @@ public class TwitchClipFetcherLogic {
             }
             ArrayNode clipsArray = (ArrayNode) jsonNode.get("data");
 
-            clipsArray.forEach(clipNode -> {
+            twitchClips = StreamSupport.stream(clipsArray.spliterator(), false)
+                    .map(clipNode -> {
+                        String createdAtString = clipNode.get("created_at").asText();
+                        LocalDateTime createdAt = LocalDateTime.parse(createdAtString, DateTimeFormatter.ISO_DATE_TIME);
+                        return new TwitchClip(
+                                null,
+                                clipNode.get("id").asText(),
+                                clipNode.get("title").asText(),
+                                clipNode.get("creator_name").asText().toLowerCase(),
+                                clipNode.get("view_count").asInt(),
+                                createdAt,
+                                clipNode.get("broadcaster_id").asText(),
+                                clipNode.get("url").asText(),
+                                clipNode.get("duration").asInt()
+                        );
+                    })
+                    .filter(clip -> clip.getDuration() >= durationOfClip) // Remove clips with duration < 10
+                    .sorted(Comparator.comparingInt(TwitchClip::getViewCount).reversed()) // Sort by viewCount (desc)
+                    .collect(Collectors.toList());
 
-                String createdAtString = clipNode.get("created_at").asText();
-                LocalDateTime createdAt = LocalDateTime.parse(createdAtString, DateTimeFormatter.ISO_DATE_TIME);
-                TwitchClip twitchClip = new TwitchClip(
-                        null,
-                        clipNode.get("id").asText(),
-                        clipNode.get("title").asText(),
-                        clipNode.get("creator_name").asText().toLowerCase(),
-                        clipNode.get("view_count").asInt(),
-                        createdAt,
-                        clipNode.get("broadcaster_id").asText(),
-                        clipNode.get("url").asText()
-                );
-                twitchClips.add(twitchClip);
-            });
-            twitchClips.sort(Comparator.comparingInt(TwitchClip::getViewCount).reversed());
-
+            log.info("Collected twitchClips: {}", twitchClips);
         } catch (IOException e) {
             log.error("Error parsing response body: {}", e.getMessage(), e);
         }
-
         return twitchClips;
     }
+
 }

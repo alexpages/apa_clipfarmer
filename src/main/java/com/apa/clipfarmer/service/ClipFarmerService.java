@@ -32,6 +32,11 @@ public class ClipFarmerService {
     private final SqlSessionFactory sqlSessionFactory;
 
     /**
+     * The duration of a clip in seconds.
+     */
+    private final int clipDuration = 10;
+
+    /**
      * Execute main batch
      *
      * @param args Command-line arguments
@@ -57,11 +62,13 @@ public class ClipFarmerService {
 
             // Retrieve Twitch Token
             String oAuthToken = TwitchAuthLogic.getOAuthToken();
+            log.info("oAuthToken has been retrieved: [{}]", oAuthToken);
 
-            // Get List of clips for that streamer
-            List<TwitchClip> lTwitchClip = twitchClipFetcherLogic.getTwitchClips(twitchStreamerNameEnum.getName(), oAuthToken);
+            List<TwitchClip> lTwitchClip = twitchClipFetcherLogic.getTwitchClips(
+                    twitchStreamerNameEnum.getName(),
+                    oAuthToken,
+                    clipDuration);
             TwitchClipMapper mapper = session.getMapper(TwitchClipMapper.class);
-            log.info("TwitchClipMapper has been instantiated");
 
             for (TwitchClip twitchClip : lTwitchClip) {
                 try {
@@ -70,10 +77,8 @@ public class ClipFarmerService {
                         log.info("Clip {} already exists in DB, skipping.", twitchClip.getClipId());
                         continue;
                     }
-                    // Download clip
-                    twitchClipDownloader.downloadFile(twitchClip.getUrl());
 
-                    // Save the clip to the database
+                    twitchClipDownloader.downloadFile(twitchClip.getUrl());
                     mapper.insertClip(twitchClip);
                     session.commit();
                     log.info("Inserted new clip {} into the database.", twitchClip.getClipId());

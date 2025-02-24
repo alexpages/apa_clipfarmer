@@ -86,7 +86,6 @@ public class TwitchClipDownloader {
 
             int responseCode = conn.getResponseCode();
             String response = readResponse(conn);
-
             log.info("Twitch API Response ({}): {}", responseCode, response);
 
             if (responseCode != 200) {

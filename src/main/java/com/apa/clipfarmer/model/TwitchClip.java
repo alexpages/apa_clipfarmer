@@ -22,4 +22,5 @@ public class TwitchClip {
     private LocalDateTime createdAt;
     private String broadcasterId;
     private String url;
+    private int duration; // in seconds
 }
