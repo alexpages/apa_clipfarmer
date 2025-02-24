@@ -36,7 +36,7 @@ import java.util.stream.StreamSupport;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class TwitchClipFetcherLogic {
+public class TwitchClipRetriever {
 
     private final TwitchUserLogic twitchUserLogic;
     private static final int STARTED_AT = 5;

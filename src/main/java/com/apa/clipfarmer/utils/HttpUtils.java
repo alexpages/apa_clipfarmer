@@ -18,7 +18,6 @@ public class HttpUtils {
     public static JsonNode parseJsonResponse(String jsonResponse) {
         ObjectMapper objectMapper = new ObjectMapper();
         try {
-            // Parse the JSON string into a JsonNode
             return objectMapper.readTree(jsonResponse);
         } catch (Exception e) {
             System.err.println("Error parsing JSON response: " + e.getMessage());

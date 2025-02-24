@@ -17,6 +17,8 @@ public class TwitchConstants {
     public static final String TWITCH_USERS_API = "https://api.twitch.tv/helix/users";
     public static final String TWITCH_GRAPHQL_CLIENT_ID = "kimne78kx3ncx6brgo4mv6wki5h1ko"; // Public Client ID
     public static final String TWITCH_GQL_URL = "https://gql.twitch.tv/gql";
+    public static final String TWITCH_URL = "https://www.twitch.tv/";
+
 
 
 }
