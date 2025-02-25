@@ -40,6 +40,7 @@ public class TwitchClipFetcherLogic {
 
     private final TwitchUserLogic twitchUserLogic;
     private static final int STARTED_AT = 5;
+    private static final int MIN_VIEWS = 200;
 
     /**
      * Fetches the top clips for the given streamer and sorts them by view count.
@@ -62,7 +63,6 @@ public class TwitchClipFetcherLogic {
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
         RestTemplate restTemplate = new RestTemplate();
-
         try {
             ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
             log.info("Response from Twitch Clip API: {}", response.getBody());
@@ -85,7 +85,6 @@ public class TwitchClipFetcherLogic {
         if (!responseBody.hasBody()) {
             return twitchClips;
         }
-
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode jsonNode = objectMapper.readTree(responseBody.getBody());
@@ -112,10 +111,10 @@ public class TwitchClipFetcherLogic {
                                 clipNode.get("language").asText()
                         );
                     })
-                    .filter(clip -> clip.getDuration() >= durationOfClip) // Remove clips with duration < 10
+                    .filter(clip -> clip.getDuration() >= durationOfClip)   // Remove clips with duration < 10
+                    .filter(clip -> clip.getViewCount() > MIN_VIEWS)        // Remove clips with viewCount <= 600
                     .sorted(Comparator.comparingInt(TwitchClip::getViewCount).reversed()) // Sort by viewCount (desc)
                     .collect(Collectors.toList());
-
             log.info("Collected twitchClips: {}", twitchClips);
         } catch (IOException e) {
             log.error("Error parsing response body: {}", e.getMessage(), e);

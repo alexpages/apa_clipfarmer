@@ -14,6 +14,8 @@ import static com.apa.clipfarmer.model.TwitchConstants.TWITCH_URL;
 
 /**
  * Utility class for handling YouTube-related operations, such as generating video titles and descriptions.
+ *
+ * @author alexpages
  */
 @Service
 @RequiredArgsConstructor
