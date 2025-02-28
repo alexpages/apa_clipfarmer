@@ -54,6 +54,7 @@ public class TwitchClipFetcherLogic {
         String url = UriComponentsBuilder.fromHttpUrl(TwitchConstants.TWITCH_CLIP_API)
                 .queryParam("broadcaster_id", broadcasterId)
                 .queryParam("started_at", Instant.now().minus(STARTED_AT, ChronoUnit.DAYS)) // Clips from 5 days ago
+                .queryParam("first", 40)
                 .toUriString();
 
         HttpHeaders headers = new HttpHeaders();
@@ -63,15 +64,47 @@ public class TwitchClipFetcherLogic {
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
         RestTemplate restTemplate = new RestTemplate();
-        try {
-            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
-            log.info("Response from Twitch Clip API: {}", response.getBody());
 
-            return convertResponseBodyToTwitchClips(response, durationOfClip);
+        List<TwitchClip> allClips = new ArrayList<>();
+        String afterCursor = null;
+
+        try {
+            do {
+                String pageUrl = (afterCursor != null) ? url + "&after=" + afterCursor : url;
+                ResponseEntity<String> response = restTemplate.exchange(pageUrl, HttpMethod.GET, entity, String.class);
+                log.info("Response from Twitch Clip API: {}", response.getBody());
+                List<TwitchClip> clips = convertResponseBodyToTwitchClips(response, durationOfClip);
+                allClips.addAll(clips);
+                log.info("All clips retrieved: {}", allClips);
+
+                afterCursor = extractAfterCursor(response);
+            } while (afterCursor != null);
+
         } catch (Exception e) {
             log.error("Error fetching clips for streamer {}: {}", streamerName, e.getMessage(), e);
             throw new RuntimeException("Failed to fetch Twitch clips.", e);
         }
+
+        return allClips;
+    }
+
+    /**
+     * Extract the cursor for the next page from the response body.
+     *
+     * @param response The response body from the Twitch API.
+     * @return The cursor string for the next page, or null if there is no next page.
+     */
+    private static String extractAfterCursor(ResponseEntity<String> response) {
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonNode = objectMapper.readTree(response.getBody());
+            if (jsonNode.has("pagination") && jsonNode.get("pagination").has("cursor")) {
+                return jsonNode.get("pagination").get("cursor").asText();
+            }
+        } catch (IOException e) {
+            log.error("Error extracting 'after' cursor: {}", e.getMessage(), e);
+        }
+        return null;
     }
 
     /**

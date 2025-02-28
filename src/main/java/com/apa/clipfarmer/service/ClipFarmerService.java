@@ -57,6 +57,7 @@ public class ClipFarmerService {
         try (SqlSession session = sqlSessionFactory.openSession()) {
             List<TwitchClip> twitchClips = twitchClipFetcherLogic.getTwitchClips(
                     twitchStreamer.getName(), oAuthToken, CLIP_DURATION);
+            log.info("Total amount of clips retrieved for broadcasterId [{}] is: [{}]", twitchStreamer.getName(), twitchClips.size());
             TwitchClipMapper mapper = session.getMapper(TwitchClipMapper.class);
 
             for (TwitchClip clip : twitchClips) {
