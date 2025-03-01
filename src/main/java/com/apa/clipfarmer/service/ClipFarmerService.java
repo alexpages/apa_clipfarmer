@@ -3,6 +3,7 @@ package com.apa.clipfarmer.service;
 import com.apa.clipfarmer.logic.twitch.TwitchAuthLogic;
 import com.apa.clipfarmer.logic.twitch.TwitchClipDownloader;
 import com.apa.clipfarmer.logic.twitch.TwitchClipFetcherLogic;
+import com.apa.clipfarmer.logic.video.VideoLogic;
 import com.apa.clipfarmer.mapper.TwitchClipMapper;
 import com.apa.clipfarmer.model.ClipFarmerArgs;
 import com.apa.clipfarmer.model.TwitchClip;
@@ -30,6 +31,7 @@ public class ClipFarmerService {
     private final TwitchClipFetcherLogic twitchClipFetcherLogic;
     private final TwitchClipDownloader twitchClipDownloader;
     private final SqlSessionFactory sqlSessionFactory;
+    private final VideoLogic videoLogic;
 
     /**
      * The duration of a clip in seconds.
@@ -42,18 +44,18 @@ public class ClipFarmerService {
      * @param args Command-line arguments
      */
     public void execute(String[] args) {
+        // Get streamer name
         ClipFarmerArgs clipFarmerArgs = parseArguments(args);
         if (clipFarmerArgs == null) return;
-
         TwitchStreamerNameEnum twitchStreamer = clipFarmerArgs.getTwitchStreamerNameEnum();
         if (TwitchStreamerNameEnum.INVALID.equals(twitchStreamer)) {
             log.warn("Twitch streamer is not present in list or was null");
             return;
         }
 
+        // Get clips and download them
         String oAuthToken = retrieveOAuthToken();
         if (oAuthToken == null) return;
-
         try (SqlSession session = sqlSessionFactory.openSession()) {
             List<TwitchClip> twitchClips = twitchClipFetcherLogic.getTwitchClips(
                     twitchStreamer.getName(), oAuthToken, CLIP_DURATION);
@@ -66,6 +68,15 @@ public class ClipFarmerService {
         } catch (Exception e) {
             log.error("Unexpected error during execution", e);
         }
+
+        // Create summary videos after previous download
+        String directoryPath = "build/downloads";
+        String outputFileName = "build/output/merged_video.mp4";
+        // Get list of video file paths
+        List<String> videoPaths = videoLogic.getVideoPaths(directoryPath);
+        // Call the method with the retrieved file paths
+        videoLogic.concatenateVideos(videoPaths, outputFileName);
+
     }
 
     /**

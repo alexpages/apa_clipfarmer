@@ -12,10 +12,17 @@ import lombok.Getter;
 @Getter
 public enum TwitchStreamerNameEnum {
 
-    JASONTHEWEEN("jasontheween"),
-    INVALID("");
+    JASONTHEWEEN("jasontheween", "en"),
+    STABLERONALDO("stableronaldo", "en"),
+    LACY("lacy", "en"),
+    XQC("xqc", "en"),
+    EDWARDKSO("edwardkso", "en"),
+    VALKYRAE("valkyrae", "en"),
+    XCHOCOBARS("xchocobars", "en"),
+    INVALID("", "");
 
     private final String name;
+    private final String language;
 
     /**
      * Returns the TwitchStreamerNameEnum from a String value

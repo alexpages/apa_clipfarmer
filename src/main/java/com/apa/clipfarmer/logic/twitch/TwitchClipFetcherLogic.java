@@ -54,7 +54,7 @@ public class TwitchClipFetcherLogic {
         String url = UriComponentsBuilder.fromHttpUrl(TwitchConstants.TWITCH_CLIP_API)
                 .queryParam("broadcaster_id", broadcasterId)
                 .queryParam("started_at", Instant.now().minus(STARTED_AT, ChronoUnit.DAYS)) // Clips from 5 days ago
-                .queryParam("first", 40)
+                .queryParam("first", 10)
                 .toUriString();
 
         HttpHeaders headers = new HttpHeaders();
@@ -64,7 +64,6 @@ public class TwitchClipFetcherLogic {
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
         RestTemplate restTemplate = new RestTemplate();
-
         List<TwitchClip> allClips = new ArrayList<>();
         String afterCursor = null;
 
@@ -77,9 +76,10 @@ public class TwitchClipFetcherLogic {
                 allClips.addAll(clips);
                 log.info("All clips retrieved: {}", allClips);
 
-                afterCursor = extractAfterCursor(response);
-            } while (afterCursor != null);
+//                afterCursor = extractAfterCursor(response);TODO restore
+                afterCursor = null;
 
+            } while (afterCursor != null);
         } catch (Exception e) {
             log.error("Error fetching clips for streamer {}: {}", streamerName, e.getMessage(), e);
             throw new RuntimeException("Failed to fetch Twitch clips.", e);
@@ -144,9 +144,9 @@ public class TwitchClipFetcherLogic {
                                 clipNode.get("language").asText()
                         );
                     })
-                    .filter(clip -> clip.getDuration() >= durationOfClip)   // Remove clips with duration < 10
-                    .filter(clip -> clip.getViewCount() > MIN_VIEWS)        // Remove clips with viewCount <= 600
-                    .sorted(Comparator.comparingInt(TwitchClip::getViewCount).reversed()) // Sort by viewCount (desc)
+                    .filter(clip -> clip.getDuration() >= durationOfClip)                   // Remove clips with duration < 10
+                    .filter(clip -> clip.getViewCount() > MIN_VIEWS)                        // Remove clips with viewCount <= 600
+                    .sorted(Comparator.comparingInt(TwitchClip::getViewCount).reversed())   // Sort by viewCount (desc)
                     .collect(Collectors.toList());
             log.info("Collected twitchClips: {}", twitchClips);
         } catch (IOException e) {
