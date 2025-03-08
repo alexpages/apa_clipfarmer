@@ -30,6 +30,8 @@ public class VideoLogic {
      * @param outputFileName  Name of the output file.
      */
     public void concatenateVideos(List<String> videoPaths, String outputFileName) {
+        long startTime = System.currentTimeMillis();  // Start time
+
         new File(OUTPUT_FOLDER).mkdirs();
         if (videoPaths == null || videoPaths.isEmpty()) {
             log.error("No video files provided for concatenation.");
@@ -61,12 +63,16 @@ public class VideoLogic {
         } catch (Exception e) {
             log.error("Error during video concatenation using concat demuxer", e);
         } finally {
-            // Delete the temporary concat input file after use
             if (tempFile.exists()) {
                 tempFile.delete();
             }
         }
+
+        long endTime = System.currentTimeMillis();
+        long elapsedTime = endTime - startTime;
+        log.info("Video concatenation took {} milliseconds", elapsedTime);
     }
+
 
     /**
      * Creates a temporary text file listing the paths of the input videos for FFmpeg's concat demuxer.
