@@ -57,6 +57,9 @@ dependencies {
     // Video
     implementation 'org.bytedeco:javacv-platform:1.5.8' // Or the latest version
 
+
+    // Email
+    implementation 'org.springframework.boot:spring-boot-starter-mail:3.2.1'
 }
 
 test {

@@ -1,5 +1,6 @@
 package com.apa.clipfarmer.service;
 
+import com.apa.clipfarmer.logic.EmailNotificationLogic;
 import com.apa.clipfarmer.logic.twitch.TwitchAuthLogic;
 import com.apa.clipfarmer.logic.twitch.TwitchClipDownloader;
 import com.apa.clipfarmer.logic.twitch.TwitchClipFetcherLogic;
@@ -32,6 +33,7 @@ public class ClipFarmerService {
     private final TwitchClipDownloader twitchClipDownloader;
     private final SqlSessionFactory sqlSessionFactory;
     private final VideoLogic videoLogic;
+    private final EmailNotificationLogic emailNotificationLogic;
 
     /**
      * The duration of a clip in seconds.
@@ -45,6 +47,9 @@ public class ClipFarmerService {
      */
     public void execute(String[] args) {
         // Get streamer name
+
+//        emailNotificationLogic.sendEmail("Test", "Message");
+
         ClipFarmerArgs clipFarmerArgs = parseArguments(args);
         if (clipFarmerArgs == null) return;
         TwitchStreamerNameEnum twitchStreamer = clipFarmerArgs.getTwitchStreamerNameEnum();

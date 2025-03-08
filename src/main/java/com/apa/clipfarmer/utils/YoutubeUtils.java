@@ -1,4 +1,4 @@
-package com.apa.clipfarmer.logic.youtube;
+package com.apa.clipfarmer.utils;
 
 import com.apa.clipfarmer.mapper.TwitchStreamerMapper;
 import com.apa.clipfarmer.model.TwitchClip;
