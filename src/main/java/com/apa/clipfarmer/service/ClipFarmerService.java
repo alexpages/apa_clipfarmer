@@ -48,7 +48,6 @@ public class ClipFarmerService {
     public void execute(String[] args) {
         // Get streamer name
 
-//        emailNotificationLogic.sendEmail("Test", "Message");
 
         ClipFarmerArgs clipFarmerArgs = parseArguments(args);
         if (clipFarmerArgs == null) return;
@@ -81,6 +80,9 @@ public class ClipFarmerService {
         List<String> videoPaths = videoLogic.getVideoPaths(directoryPath);
         // Call the method with the retrieved file paths
         videoLogic.concatenateVideos(videoPaths, outputFileName);
+
+        // Final //TODO Uncomment
+//        emailNotificationLogic.sendEmail("Execution finalized", "Execution for streamer: " + twitchStreamer.getName() + ", has finalized successfully");
 
     }
 
