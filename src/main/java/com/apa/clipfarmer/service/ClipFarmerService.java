@@ -47,8 +47,6 @@ public class ClipFarmerService {
      */
     public void execute(String[] args) {
         // Get streamer name
-
-
         ClipFarmerArgs clipFarmerArgs = parseArguments(args);
         if (clipFarmerArgs == null) return;
         TwitchStreamerNameEnum twitchStreamer = clipFarmerArgs.getTwitchStreamerNameEnum();
@@ -67,18 +65,18 @@ public class ClipFarmerService {
             TwitchClipMapper mapper = session.getMapper(TwitchClipMapper.class);
 
             for (TwitchClip clip : twitchClips) {
-                processClip(clip, mapper, session);
+                processClip(clip, mapper, session, twitchStreamer);
             }
         } catch (Exception e) {
             log.error("Unexpected error during execution", e);
         }
 
         // Create summary videos after previous download
-        String directoryPath = "build/downloads";
-        String outputFileName = "build/output/merged_video.mp4";
-        // Get list of video file paths
+        String directoryPath = "build/downloads/" + twitchStreamer.getName();
+        String outputFileName = "build/output/" + twitchStreamer.getName() + "_merged_video.mp4";
+
+        // Process videos
         List<String> videoPaths = videoLogic.getVideoPaths(directoryPath);
-        // Call the method with the retrieved file paths
         videoLogic.concatenateVideos(videoPaths, outputFileName);
 
         // Final //TODO Uncomment
@@ -126,13 +124,13 @@ public class ClipFarmerService {
      * @param mapper     The TwitchClipMapper instance.
      * @param session    The SQL session.
      */
-    private void processClip(TwitchClip twitchClip, TwitchClipMapper mapper, SqlSession session) {
+    private void processClip(TwitchClip twitchClip, TwitchClipMapper mapper, SqlSession session, TwitchStreamerNameEnum twitchStreamer) {
         try {
             if (mapper.selectClipByClipId(twitchClip.getClipId()) != null) {
                 log.info("Clip {} already exists in DB, skipping.", twitchClip.getClipId());
                 return;
             }
-            twitchClipDownloader.downloadFile(twitchClip.getUrl(), twitchClip);
+            twitchClipDownloader.downloadFile(twitchClip.getUrl(), twitchClip, twitchStreamer);
             mapper.insertClip(twitchClip);
             session.commit();
             log.info("Inserted new clip {} into the database.", twitchClip.getClipId());

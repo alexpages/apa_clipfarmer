@@ -1,6 +1,7 @@
 package com.apa.clipfarmer.logic.twitch;
 
 import com.apa.clipfarmer.model.TwitchClip;
+import com.apa.clipfarmer.model.TwitchStreamerNameEnum;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
@@ -38,7 +39,7 @@ public class TwitchClipDownloader {
      *
      * @param clipUrl     the URL of the Twitch clip
      */
-    public void downloadFile(String clipUrl, TwitchClip twitchClip) {
+    public void downloadFile(String clipUrl, TwitchClip twitchClip, TwitchStreamerNameEnum twitchStreamer) {
         log.info("Starting download for clip: {}", clipUrl);
 
         String clipSlug = extractClipSlug(clipUrl);
@@ -54,14 +55,15 @@ public class TwitchClipDownloader {
             return;
         }
         log.info("Clip video URL has been extracted successfully: {}", oVideoUrl.get());
+        String folder = OUTPUT_FOLDER + twitchStreamer.getName();
         String outputFileName = String.format(
-                "%sclip_%s_%s_%s.mp4",
-                OUTPUT_FOLDER,
+                "%s/clip_%s_%s_%s.mp4",
+                folder,
                 twitchClip.getLanguage(),
                 twitchClip.getBroadcasterId(),
                 twitchClip.getClipId()
         );
-        downloadVideo(oVideoUrl.get(), outputFileName);
+        downloadVideo(oVideoUrl.get(), outputFileName, folder);
     }
 
     /**
@@ -214,10 +216,10 @@ public class TwitchClipDownloader {
      * @param videoUrl      the URL of the video to download
      * @param outputFileName the name of the output file
      */
-    private void downloadVideo(String videoUrl, String outputFileName) {
+    private void downloadVideo(String videoUrl, String outputFileName, String folder) {
         try {
             log.info("Downloading video from: {}", videoUrl);
-            new File(OUTPUT_FOLDER).mkdirs();
+            new File(folder).mkdirs();
 
             HttpURLConnection conn = (HttpURLConnection) new URL(videoUrl).openConnection();
             conn.setRequestProperty("User-Agent", "Mozilla/5.0");

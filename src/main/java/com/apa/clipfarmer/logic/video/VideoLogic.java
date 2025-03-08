@@ -22,15 +22,17 @@ import java.util.List;
 public class VideoLogic {
 
     private static final String OUTPUT_FOLDER = "build/output/";
+    private static final String WATERMARK_TEXT = "/clipFarmer";
+    private static final String WATERMARK_IMAGE = "build/resources/watermark.png";
 
     /**
-     * Concatenates multiple video files into a single output file using FFmpeg's concat demuxer.
+     * Concatenates multiple video files into a single output file with a watermark.
      *
      * @param videoPaths      List of file paths of the videos to concatenate.
      * @param outputFileName  Name of the output file.
      */
     public void concatenateVideos(List<String> videoPaths, String outputFileName) {
-        long startTime = System.currentTimeMillis();  // Start time
+        long startTime = System.currentTimeMillis();
 
         new File(OUTPUT_FOLDER).mkdirs();
         if (videoPaths == null || videoPaths.isEmpty()) {
@@ -40,57 +42,38 @@ public class VideoLogic {
 
         log.info("Starting video concatenation: {}", outputFileName);
 
-        // Delete existing output file if it exists
         File outputFile = new File(outputFileName);
         if (outputFile.exists() && !outputFile.delete()) {
             log.error("Failed to delete existing output file: {}", outputFileName);
             return;
         }
 
-        // Create a temporary text file listing the input videos
         File tempFile = createConcatFile(videoPaths);
         if (tempFile == null) {
             log.error("Failed to create concat input file.");
             return;
         }
 
-        // Run the FFmpeg command with the concat demuxer
         try {
-            String command = String.format("ffmpeg -f concat -safe 0 -i %s -c copy %s", tempFile.getAbsolutePath(), outputFileName);
-            Process process = Runtime.getRuntime().exec(command);
-            process.waitFor();
-            log.info("Video concatenation completed: {}", outputFileName);
+            String tempMergedFile = OUTPUT_FOLDER + "temp_merged.mp4";
+
+            // Step 1: Concatenate videos
+            String concatCommand = String.format("ffmpeg -f concat -safe 0 -i %s -c:v libx264 -preset fast -crf 23 -c:a aac -b:a 128k %s", tempFile.getAbsolutePath(), tempMergedFile);
+            executeFFmpegCommand(concatCommand);
+
+            // Step 2: Add watermark
+            String finalOutputFile = OUTPUT_FOLDER + outputFileName;
+            String watermarkCommand = String.format("ffmpeg -i %s -vf \"drawtext=text='%s':fontcolor=white:fontsize=24:x=10:y=h-th-10\" -c:v libx264 -preset fast -crf 23 -c:a aac -b:a 128k %s", tempMergedFile, WATERMARK_TEXT, finalOutputFile);
+            executeFFmpegCommand(watermarkCommand);
+
+            log.info("Video concatenation and watermarking completed: {}", finalOutputFile);
         } catch (Exception e) {
-            log.error("Error during video concatenation using concat demuxer", e);
+            log.error("Error during video processing", e);
         } finally {
-            if (tempFile.exists()) {
-                tempFile.delete();
-            }
+            tempFile.delete();
         }
-
-        long endTime = System.currentTimeMillis();
-        long elapsedTime = endTime - startTime;
-        log.info("Video concatenation took {} milliseconds", elapsedTime);
-    }
-
-
-    /**
-     * Creates a temporary text file listing the paths of the input videos for FFmpeg's concat demuxer.
-     *
-     * @param videoPaths List of video file paths.
-     * @return The created temporary text file.
-     */
-    private File createConcatFile(List<String> videoPaths) {
-        File tempFile = new File(OUTPUT_FOLDER + "input.txt");
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile))) {
-            for (String videoPath : videoPaths) {
-                writer.write("file '" + videoPath + "'\n");
-            }
-        } catch (IOException e) {
-            log.error("Error writing to concat file", e);
-            return null;
-        }
-        return tempFile;
+        long elapsedTime = (System.currentTimeMillis() - startTime) / 1000;
+        log.info("Video processing took {} seconds", elapsedTime);
     }
 
     /**
@@ -114,5 +97,29 @@ public class VideoLogic {
             System.err.println("Directory does not exist or is not a directory: " + directoryPath);
         }
         return videoPaths;
+    }
+
+    /**
+     * Creates a temporary text file listing the input video paths for FFmpeg.
+     */
+    private File createConcatFile(List<String> videoPaths) {
+        File tempFile = new File(OUTPUT_FOLDER + "input.txt");
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile))) {
+            for (String videoPath : videoPaths) {
+                writer.write("file '" + videoPath + "'\n");
+            }
+        } catch (IOException e) {
+            log.error("Error writing to concat file", e);
+            return null;
+        }
+        return tempFile;
+    }
+
+    /**
+     * Executes an FFmpeg command.
+     */
+    private void executeFFmpegCommand(String command) throws IOException, InterruptedException {
+        Process process = Runtime.getRuntime().exec(command);
+        process.waitFor();
     }
 }
