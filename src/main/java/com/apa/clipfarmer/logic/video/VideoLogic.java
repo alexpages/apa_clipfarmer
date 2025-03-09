@@ -31,13 +31,13 @@ public class VideoLogic {
      * @param videoPaths      List of file paths of the videos to concatenate.
      * @param outputFileName  Name of the output file.
      */
-    public void concatenateVideos(List<String> videoPaths, String outputFileName) {
+    public String concatenateVideos(List<String> videoPaths, String outputFileName) {
         long startTime = System.currentTimeMillis();
 
         new File(OUTPUT_FOLDER).mkdirs();
         if (videoPaths == null || videoPaths.isEmpty()) {
             log.error("No video files provided for concatenation.");
-            return;
+            return null;
         }
 
         log.info("Starting video concatenation: {}", outputFileName);
@@ -45,23 +45,24 @@ public class VideoLogic {
         File outputFile = new File(outputFileName);
         if (outputFile.exists() && !outputFile.delete()) {
             log.error("Failed to delete existing output file: {}", outputFileName);
-            return;
+            return null;
         }
 
         File tempFile = createConcatFile(videoPaths);
         if (tempFile == null) {
             log.error("Failed to create concat input file.");
-            return;
+            return null;
         }
 
+        String tempMergedFile = OUTPUT_FOLDER + "temp_merged.mp4";
         try {
-            String tempMergedFile = OUTPUT_FOLDER + "temp_merged.mp4";
-
             // Step 1: Concatenate videos
-            String concatCommand = String.format("ffmpeg -f concat -safe 0 -i %s -c:v libx264 -preset fast -crf 23 -c:a aac -b:a 128k %s", tempFile.getAbsolutePath(), tempMergedFile);
+            log.info("Concatenate videos init");
+            String concatCommand = String.format("ffmpeg -f concat -safe 0 -i %s -c:v libx264 -preset fast -crf 23 -c:a aac -b:a 128k -threads 4 %s", tempFile.getAbsolutePath(), tempMergedFile);
             executeFFmpegCommand(concatCommand);
 
             // Step 2: Add watermark
+            log.info("Add watermark to video");
             String finalOutputFile = OUTPUT_FOLDER + outputFileName;
             String watermarkCommand = String.format("ffmpeg -i %s -vf \"drawtext=text='%s':fontcolor=white:fontsize=24:x=10:y=h-th-10\" -c:v libx264 -preset fast -crf 23 -c:a aac -b:a 128k %s", tempMergedFile, WATERMARK_TEXT, finalOutputFile);
             executeFFmpegCommand(watermarkCommand);
@@ -74,6 +75,7 @@ public class VideoLogic {
         }
         long elapsedTime = (System.currentTimeMillis() - startTime) / 1000;
         log.info("Video processing took {} seconds", elapsedTime);
+        return tempMergedFile;
     }
 
     /**
@@ -105,8 +107,11 @@ public class VideoLogic {
     private File createConcatFile(List<String> videoPaths) {
         File tempFile = new File(OUTPUT_FOLDER + "input.txt");
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile))) {
+            int videoCount = 1;
             for (String videoPath : videoPaths) {
+                log.info("Concatenation, video {} out of {}", videoCount, videoPaths.size());
                 writer.write("file '" + videoPath + "'\n");
+                videoCount++;
             }
         } catch (IOException e) {
             log.error("Error writing to concat file", e);

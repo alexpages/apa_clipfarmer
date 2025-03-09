@@ -5,10 +5,12 @@ import com.apa.clipfarmer.logic.twitch.TwitchAuthLogic;
 import com.apa.clipfarmer.logic.twitch.TwitchClipDownloader;
 import com.apa.clipfarmer.logic.twitch.TwitchClipFetcherLogic;
 import com.apa.clipfarmer.logic.video.VideoLogic;
+import com.apa.clipfarmer.logic.youtube.YoutubeUploaderLogic;
 import com.apa.clipfarmer.mapper.TwitchClipMapper;
 import com.apa.clipfarmer.model.ClipFarmerArgs;
 import com.apa.clipfarmer.model.TwitchClip;
 import com.apa.clipfarmer.model.TwitchStreamerNameEnum;
+import com.apa.clipfarmer.utils.YoutubeUtils;
 import com.beust.jcommander.JCommander;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +36,8 @@ public class ClipFarmerService {
     private final SqlSessionFactory sqlSessionFactory;
     private final VideoLogic videoLogic;
     private final EmailNotificationLogic emailNotificationLogic;
+    private final YoutubeUtils youtubeUtils;
+    private final YoutubeUploaderLogic youtubeUploaderLogic;
 
     /**
      * The duration of a clip in seconds.
@@ -56,11 +60,11 @@ public class ClipFarmerService {
         }
 
         // Get clips and download them
-        String oAuthToken = retrieveOAuthToken();
-        if (oAuthToken == null) return;
+        String twitchOAuthToken = retrieveTwitchOAuthToken();
+        if (twitchOAuthToken == null) return;
         try (SqlSession session = sqlSessionFactory.openSession()) {
             List<TwitchClip> twitchClips = twitchClipFetcherLogic.getTwitchClips(
-                    twitchStreamer.getName(), oAuthToken, CLIP_DURATION);
+                    twitchStreamer.getName(), twitchOAuthToken, CLIP_DURATION);
             log.info("Total amount of clips retrieved for broadcasterId [{}] is: [{}]", twitchStreamer.getName(), twitchClips.size());
             TwitchClipMapper mapper = session.getMapper(TwitchClipMapper.class);
 
@@ -73,11 +77,17 @@ public class ClipFarmerService {
 
         // Create summary videos after previous download
         String directoryPath = "build/downloads/" + twitchStreamer.getName();
-        String outputFileName = "build/output/" + twitchStreamer.getName() + "_merged_video.mp4";
+        String fileName = "_merged_video.mp4";
+        String outputFileName = "build/output/" + twitchStreamer.getName() + fileName;
 
         // Process videos
         List<String> videoPaths = videoLogic.getVideoPaths(directoryPath);
-        videoLogic.concatenateVideos(videoPaths, outputFileName);
+        String pathVideoCreated = videoLogic.concatenateVideos(videoPaths, outputFileName);
+
+        // Upload video
+        String youtubeDescription = youtubeUtils.createVideoDescription(twitchStreamer.getName());
+        String yotubeTitle = youtubeUtils.createVideoTitle(twitchStreamer.getName(), fileName, true);
+        youtubeUploaderLogic.uploadHighlightVideo(youtubeDescription, yotubeTitle, pathVideoCreated);
 
         // Final //TODO Uncomment
 //        emailNotificationLogic.sendEmail("Execution finalized", "Execution for streamer: " + twitchStreamer.getName() + ", has finalized successfully");
@@ -106,7 +116,7 @@ public class ClipFarmerService {
      *
      * @return OAuth token as a String, or null if retrieval fails.
      */
-    private String retrieveOAuthToken() {
+    private String retrieveTwitchOAuthToken() {
         try {
             String token = TwitchAuthLogic.getOAuthToken();
             log.info("OAuth token has been retrieved: [{}]", token);
