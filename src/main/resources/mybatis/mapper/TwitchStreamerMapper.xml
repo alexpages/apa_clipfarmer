@@ -21,6 +21,13 @@
         WHERE broadcaster_id = #{broadcasterId}
     </select>
 
+    <!-- Select TwitchStreamer by twitchStreamerName -->
+    <select id="selectByTwitchStreamerName" parameterType="String" resultMap="TwitchStreamerResultMap">
+        SELECT id, twitch_streamer_name
+        FROM twitch_streamer
+        WHERE twitch_streamer_name = #{twitchStreamerName}
+    </select>
+
     <!-- Select TwitchStreamer by ID -->
     <select id="selectStreamerById" parameterType="int" resultMap="TwitchStreamerResultMap">
         SELECT id, twitch_streamer_name

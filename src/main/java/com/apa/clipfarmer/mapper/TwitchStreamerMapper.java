@@ -20,6 +20,9 @@ public interface TwitchStreamerMapper {
 
     TwitchStreamer selectStreamerById(@Param("id") int id);
 
+    TwitchStreamer selectByTwitchStreamerName(@Param("twitchStreamerName") String twitchStreamerName);
+
+
     void insertStreamer(TwitchStreamer twitchStreamer);
 
     void updateStreamer(TwitchStreamer twitchStreamer);
