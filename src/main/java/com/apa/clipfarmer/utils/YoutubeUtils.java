@@ -28,11 +28,11 @@ public class YoutubeUtils {
      * Creates a YouTube video title based on the broadcaster's ID and Twitch clip details.
      *
      * @param broadcasterId The ID of the Twitch broadcaster.
-     * @param twitchClip    The Twitch clip details.
+     * @param title The title.
      * @return A formatted YouTube video title.
      * @throws IllegalStateException If the broadcaster cannot be found or an error occurs.
      */
-    public String createVideoTitle(String broadcasterId, TwitchClip twitchClip) {
+    public String createVideoTitle(String broadcasterId, String title, Boolean isHighlight) {
         try (SqlSession session = sqlSessionFactory.openSession()) {
             TwitchStreamerMapper mapper = session.getMapper(TwitchStreamerMapper.class);
             TwitchStreamer twitchStreamer = mapper.selectByBroadcasterId(broadcasterId);
@@ -41,9 +41,15 @@ public class YoutubeUtils {
                 throw new IllegalStateException("TwitchStreamer not found for broadcasterId: " + broadcasterId);
             }
 
-            return String.format("Twitch Clip - %s - %s",
-                    twitchStreamer.getTwitchStreamerName(),
-                    twitchClip.getTitle());
+            if (isHighlight) {
+                return String.format("Highlight - %s - %s",
+                        twitchStreamer.getTwitchStreamerName(),
+                        title);
+            } else {
+                return String.format("Twitch Clip - %s - %s",
+                        twitchStreamer.getTwitchStreamerName(),
+                        title);
+            }
         } catch (Exception e) {
             log.error("Error creating YouTube video title for broadcasterId {}: {}", broadcasterId, e.getMessage(), e);
             throw new IllegalStateException("Failed to create video title due to an internal error.", e);
