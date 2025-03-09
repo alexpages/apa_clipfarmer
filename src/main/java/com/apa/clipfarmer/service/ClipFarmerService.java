@@ -87,7 +87,7 @@ public class ClipFarmerService {
         // Upload video
         String youtubeDescription = youtubeUtils.createVideoDescription(twitchStreamer.getName());
         String yotubeTitle = youtubeUtils.createVideoTitle(twitchStreamer.getName(), fileName, true);
-        youtubeUploaderLogic.uploadHighlightVideo(youtubeDescription, yotubeTitle, pathVideoCreated);
+        youtubeUploaderLogic.uploadHighlightVideo(yotubeTitle, youtubeDescription, pathVideoCreated);
 
         // Final //TODO Uncomment
 //        emailNotificationLogic.sendEmail("Execution finalized", "Execution for streamer: " + twitchStreamer.getName() + ", has finalized successfully");

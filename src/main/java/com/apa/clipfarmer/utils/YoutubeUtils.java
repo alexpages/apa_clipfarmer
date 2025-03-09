@@ -35,7 +35,7 @@ public class YoutubeUtils {
     public String createVideoTitle(String broadcasterId, String title, Boolean isHighlight) {
         try (SqlSession session = sqlSessionFactory.openSession()) {
             TwitchStreamerMapper mapper = session.getMapper(TwitchStreamerMapper.class);
-            TwitchStreamer twitchStreamer = mapper.selectByBroadcasterId(broadcasterId);
+            TwitchStreamer twitchStreamer = mapper.selectByTwitchStreamerName(broadcasterId);
 
             if (twitchStreamer == null) {
                 throw new IllegalStateException("TwitchStreamer not found for broadcasterId: " + broadcasterId);
@@ -66,7 +66,7 @@ public class YoutubeUtils {
     public String createVideoDescription(String broadcasterId) {
         try (SqlSession session = sqlSessionFactory.openSession()) {
             TwitchStreamerMapper mapper = session.getMapper(TwitchStreamerMapper.class);
-            TwitchStreamer twitchStreamer = mapper.selectByBroadcasterId(broadcasterId);
+            TwitchStreamer twitchStreamer = mapper.selectByTwitchStreamerName(broadcasterId);
 
             if (twitchStreamer == null) {
                 throw new IllegalStateException("TwitchStreamer not found for broadcasterId: " + broadcasterId);

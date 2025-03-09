@@ -57,17 +57,26 @@ public class VideoLogic {
         String tempMergedFile = OUTPUT_FOLDER + "temp_merged.mp4";
         try {
             // Step 1: Concatenate videos
-            log.info("Concatenate videos init");
-            String concatCommand = String.format("ffmpeg -f concat -safe 0 -i %s -c:v libx264 -preset fast -crf 23 -c:a aac -b:a 128k -threads 4 %s", tempFile.getAbsolutePath(), tempMergedFile);
+            log.info("Initializing video concatenation...");
+            String concatCommand = String.format("ffmpeg -f concat -safe 0 -i %s -c copy %s", tempFile.getAbsolutePath(), outputFileName);
+
+//            String concatCommand = String.format(
+//                    "ffmpeg -f concat -safe 0 -i %s -c:v libx264 -preset fast -crf 23 -c:a aac -b:a 128k -threads 4 %s",
+//                    tempFile.getAbsolutePath(), tempMergedFile
+//            );
             executeFFmpegCommand(concatCommand);
+            log.info("Video concatenation completed: {}", tempMergedFile);
 
             // Step 2: Add watermark
-            log.info("Add watermark to video");
+            log.info("Adding watermark to video...");
             String finalOutputFile = OUTPUT_FOLDER + outputFileName;
-            String watermarkCommand = String.format("ffmpeg -i %s -vf \"drawtext=text='%s':fontcolor=white:fontsize=24:x=10:y=h-th-10\" -c:v libx264 -preset fast -crf 23 -c:a aac -b:a 128k %s", tempMergedFile, WATERMARK_TEXT, finalOutputFile);
-            executeFFmpegCommand(watermarkCommand);
+            String watermarkCommand = String.format(
+                    "ffmpeg -i %s -vf \"drawtext=text='%s':fontcolor=white:fontsize=24:x=10:y=h-th-10\" -c:v libx264 -preset fast -crf 23 -c:a aac -b:a 128k %s",
+                    tempMergedFile, WATERMARK_TEXT, finalOutputFile
+            );
+//            executeFFmpegCommand(watermarkCommand);
 
-            log.info("Video concatenation and watermarking completed: {}", finalOutputFile);
+            log.info("Video processing completed successfully: {}", finalOutputFile);
         } catch (Exception e) {
             log.error("Error during video processing", e);
         } finally {

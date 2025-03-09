@@ -54,7 +54,7 @@ public class TwitchClipFetcherLogic {
         String url = UriComponentsBuilder.fromHttpUrl(TwitchConstants.TWITCH_CLIP_API)
                 .queryParam("broadcaster_id", broadcasterId)
                 .queryParam("started_at", Instant.now().minus(STARTED_AT, ChronoUnit.DAYS)) // Clips from 5 days ago
-                .queryParam("first", 20)
+                .queryParam("first", 10)
                 .toUriString();
 
         HttpHeaders headers = new HttpHeaders();

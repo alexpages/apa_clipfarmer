@@ -12,25 +12,27 @@ import com.google.api.services.youtube.model.VideoSnippet;
 import com.google.api.services.youtube.model.VideoStatus;
 import com.google.common.collect.Lists;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Upload a video to the authenticated user's channel. Use OAuth 2.0 to
- * authorize the request. Note that you must add your video files to the
- * project folder to upload them with this application.
+ * authorize the request.
  *
- * @author Jeremy Walker
+ * @author alexpages
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class YoutubeUploaderLogic {
     /**
-     * Define a global instance of a Youtube object, which will be used
-     * to make YouTube Data API requests.
+     * Define a global instance of a Youtube object forYouTube Data API requests.
      */
     private static YouTube youtube;
 
@@ -42,79 +44,52 @@ public class YoutubeUploaderLogic {
 
     private static final String SAMPLE_VIDEO_FILENAME = "sample-video.mp4";
 
-    private final YoutubeUtils youtubeUtils;
-
     /**
      * Upload the user-selected video to the user's YouTube channel. The code
      * looks for the video in the application's project folder and uses OAuth
      * 2.0 to authorize the API request.
      */
     public void uploadHighlightVideo(String youtubeTitle, String youtubeDescription, String pathFileToUpload) {
+        log.info("Youtube Title for the next upload: {}", youtubeTitle);
+        log.info("Youtube Description for the next upload: {}", youtubeDescription);
+        log.info("Path to the file to be uploaded: {}", pathFileToUpload);
 
         // This OAuth 2.0 access scope allows an application to upload files
-        // to the authenticated user's YouTube channel, but doesn't allow
-        // other types of access.
+        // to the authenticated user's YouTube channel.
         List<String> scopes = Lists.newArrayList("https://www.googleapis.com/auth/youtube.upload");
 
         try {
             // Authorize the request.
             Credential credential = YoutubeAuth.authorize(scopes, "uploadvideo");
+            log.info("OAuth 2.0 authorization successful. Access token: {}", credential.getAccessToken());
+            log.info("Access token expiry time: {}", credential.getExpirationTimeMilliseconds());
 
             // This object is used to make YouTube Data API requests.
             youtube = new YouTube.Builder(
                     YoutubeAuth.HTTP_TRANSPORT,
                     YoutubeAuth.JSON_FACTORY,
-                    credential).setApplicationName("youtube-cmdline-uploadvideo-sample")
+                    credential).setApplicationName("clipfarmer")
                     .build();
 
             System.out.println("Uploading: " + SAMPLE_VIDEO_FILENAME);
 
             // Add extra information to the video before uploading.
-            Video videoObjectDefiningMetadata = new Video();
+            Video videoObjectDefiningMetadata = getMetadata(youtubeTitle, youtubeDescription);
+            File videoFile = new File(pathFileToUpload);
+            InputStreamContent mediaContent = new InputStreamContent(VIDEO_FILE_FORMAT, new FileInputStream(videoFile));
 
-            // Set the video to be publicly visible. This is the default
-            // setting. Other supporting settings are "unlisted" and "private."
-            VideoStatus status = new VideoStatus();
-            status.setPrivacyStatus("public");
-            videoObjectDefiningMetadata.setStatus(status);
-
-            // Most of the video's metadata is set on the VideoSnippet object.
-            VideoSnippet snippet = new VideoSnippet();
-            snippet.setTitle(youtubeTitle);
-            snippet.setDescription(youtubeDescription);
-
-            // Set the keyword tags that you want to associate with the video.
-            List<String> tags = new ArrayList<String>();
-            tags.add("Twitch");
-            tags.add("Clip");
-            tags.add("Highlight");
-            snippet.setTags(tags);
-
-            // Add the completed snippet object to the video resource.
-            videoObjectDefiningMetadata.setSnippet(snippet);
-
-            InputStreamContent mediaContent = new InputStreamContent(VIDEO_FILE_FORMAT,
-                    YoutubeUploaderLogic.class.getResourceAsStream("/sample-video.mp4"));
-
-            // Insert the video. The command sends three arguments. The first
-            // specifies which information the API request is setting and which
-            // information the API response should return. The second argument
-            // is the video resource that contains metadata about the new video.
-            // The third argument is the actual video content.
+            // Insert the video:
+            // - First argument is the info that the API request is setting and which info the API should return
+            // - Second argument is the metadata
+            // - Third argument is the video content.
             YouTube.Videos.Insert videoInsert = youtube.videos()
                     .insert("snippet,statistics,status", videoObjectDefiningMetadata, mediaContent);
 
             // Set the upload type and add an event listener.
             MediaHttpUploader uploader = videoInsert.getMediaHttpUploader();
 
-            // Indicate whether direct media upload is enabled. A value of
-            // "True" indicates that direct media upload is enabled and that
-            // the entire media content will be uploaded in a single request.
-            // A value of "False," which is the default, indicates that the
-            // request will use the resumable media upload protocol, which
-            // supports the ability to resume an upload operation after a
-            // network interruption or other transmission failure, saving
-            // time and bandwidth in the event of network failures.
+            // "True" uploads in one request
+            // "False" uploads even if there is network
             uploader.setDirectUploadEnabled(false);
 
             MediaHttpUploaderProgressListener progressListener = new MediaHttpUploaderProgressListener() {
@@ -153,8 +128,12 @@ public class YoutubeUploaderLogic {
             System.out.println("  - Video Count: " + returnedVideo.getStatistics().getViewCount());
 
         } catch (GoogleJsonResponseException e) {
-            System.err.println("GoogleJsonResponseException code: " + e.getDetails().getCode() + " : "
-                    + e.getDetails().getMessage());
+            if (e.getDetails() != null) {
+                System.err.println("GoogleJsonResponseException code: " + e.getDetails().getCode() + " : "
+                        + e.getDetails().getMessage());
+            } else {
+                System.err.println("GoogleJsonResponseException occurred, but no details were provided.");
+            }
             e.printStackTrace();
         } catch (IOException e) {
             System.err.println("IOException: " + e.getMessage());
@@ -163,5 +142,29 @@ public class YoutubeUploaderLogic {
             System.err.println("Throwable: " + t.getMessage());
             t.printStackTrace();
         }
+    }
+
+    private static Video getMetadata(String youtubeTitle, String youtubeDescription) {
+        Video videoObjectDefiningMetadata = new Video();
+
+        VideoStatus status = new VideoStatus();
+        status.setPrivacyStatus("public"); // "unlisted" and "private."
+        videoObjectDefiningMetadata.setStatus(status);
+
+        // Most of the video's metadata is set on the VideoSnippet object.
+        VideoSnippet snippet = new VideoSnippet();
+        snippet.setTitle(youtubeTitle);
+        snippet.setDescription(youtubeDescription);
+
+        // Set the keyword tags that you want to associate with the video.
+        List<String> tags = new ArrayList<>();
+        tags.add("Twitch");
+        tags.add("Clip");
+        tags.add("Highlight");
+        snippet.setTags(tags);
+
+        // Add the completed snippet object to the video resource.
+        videoObjectDefiningMetadata.setSnippet(snippet);
+        return videoObjectDefiningMetadata;
     }
 }
