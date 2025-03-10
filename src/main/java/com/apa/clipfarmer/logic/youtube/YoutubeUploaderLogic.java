@@ -71,12 +71,13 @@ public class YoutubeUploaderLogic {
                     credential).setApplicationName("clipfarmer")
                     .build();
 
-            System.out.println("Uploading: " + SAMPLE_VIDEO_FILENAME);
+            System.out.println("Uploading: " + pathFileToUpload);
 
             // Add extra information to the video before uploading.
             Video videoObjectDefiningMetadata = getMetadata(youtubeTitle, youtubeDescription);
             File videoFile = new File(pathFileToUpload);
             InputStreamContent mediaContent = new InputStreamContent(VIDEO_FILE_FORMAT, new FileInputStream(videoFile));
+            mediaContent.setLength(videoFile.length());
 
             // Insert the video:
             // - First argument is the info that the API request is setting and which info the API should return
@@ -149,6 +150,7 @@ public class YoutubeUploaderLogic {
 
         VideoStatus status = new VideoStatus();
         status.setPrivacyStatus("public"); // "unlisted" and "private."
+        status.setMadeForKids(false);
         videoObjectDefiningMetadata.setStatus(status);
 
         // Most of the video's metadata is set on the VideoSnippet object.

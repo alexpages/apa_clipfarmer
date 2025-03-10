@@ -4,10 +4,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,7 +56,6 @@ public class VideoLogic {
             return null;
         }
 
-        String tempMergedFile = OUTPUT_FOLDER + "temp_merged.mp4";
         try {
             // Step 1: Concatenate videos
             log.info("Initializing video concatenation...");
@@ -65,18 +66,17 @@ public class VideoLogic {
 //                    tempFile.getAbsolutePath(), tempMergedFile
 //            );
             executeFFmpegCommand(concatCommand);
-            log.info("Video concatenation completed: {}", tempMergedFile);
+            log.info("Video concatenation completed: {}", outputFileName);
 
             // Step 2: Add watermark
             log.info("Adding watermark to video...");
-            String finalOutputFile = OUTPUT_FOLDER + outputFileName;
             String watermarkCommand = String.format(
                     "ffmpeg -i %s -vf \"drawtext=text='%s':fontcolor=white:fontsize=24:x=10:y=h-th-10\" -c:v libx264 -preset fast -crf 23 -c:a aac -b:a 128k %s",
-                    tempMergedFile, WATERMARK_TEXT, finalOutputFile
+                    outputFileName, WATERMARK_TEXT, outputFileName
             );
 //            executeFFmpegCommand(watermarkCommand);
 
-            log.info("Video processing completed successfully: {}", finalOutputFile);
+            log.info("Video processing completed successfully: {}", outputFileName);
         } catch (Exception e) {
             log.error("Error during video processing", e);
         } finally {
@@ -84,7 +84,7 @@ public class VideoLogic {
         }
         long elapsedTime = (System.currentTimeMillis() - startTime) / 1000;
         log.info("Video processing took {} seconds", elapsedTime);
-        return tempMergedFile;
+        return outputFileName;
     }
 
     /**
@@ -134,6 +134,13 @@ public class VideoLogic {
      */
     private void executeFFmpegCommand(String command) throws IOException, InterruptedException {
         Process process = Runtime.getRuntime().exec(command);
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                log.error("FFmpeg: " + line);
+            }
+        }
         process.waitFor();
     }
+
 }

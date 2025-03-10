@@ -83,6 +83,7 @@ public class ClipFarmerService {
         // Process videos
         List<String> videoPaths = videoLogic.getVideoPaths(directoryPath);
         String pathVideoCreated = videoLogic.concatenateVideos(videoPaths, outputFileName);
+        log.info("pathVideoCreated is: {}", pathVideoCreated);
 
         // Upload video
         String youtubeDescription = youtubeUtils.createVideoDescription(twitchStreamer.getName());
@@ -90,7 +91,7 @@ public class ClipFarmerService {
         youtubeUploaderLogic.uploadHighlightVideo(yotubeTitle, youtubeDescription, pathVideoCreated);
 
         // Final //TODO Uncomment
-//        emailNotificationLogic.sendEmail("Execution finalized", "Execution for streamer: " + twitchStreamer.getName() + ", has finalized successfully");
+        emailNotificationLogic.sendEmail("Execution finalized", "Execution for streamer: " + twitchStreamer.getName() + ", has finalized successfully");
 
     }
 
