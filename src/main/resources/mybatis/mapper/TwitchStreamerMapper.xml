@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.apa.clipfarmer.mapper.TwitchStreamerMapper">
+
+    <resultMap id="TwitchStreamerResultMap" type="com.apa.clipfarmer.model.TwitchStreamer">
+        <id property="id" column="id" />
+        <result property="twitchStreamerName" column="twitch_streamer_name" />
+        <result property="broadcasterId" column="broadcaster_id" />
+    </resultMap>
+
+    <!-- Select all TwitchStreamers -->
+    <select id="selectAllStreamers" resultMap="TwitchStreamerResultMap">
+        SELECT id, twitch_streamer_name
+        FROM twitch_streamer
+    </select>
+
+    <!-- Select TwitchStreamer by broadcasterId -->
+    <select id="selectByBroadcasterId" parameterType="String" resultMap="TwitchStreamerResultMap">
+        SELECT id, twitch_streamer_name
+        FROM twitch_streamer
+        WHERE broadcaster_id = #{broadcasterId}
+    </select>
+
+    <!-- Select TwitchStreamer by twitchStreamerName -->
+    <select id="selectByTwitchStreamerName" parameterType="String" resultMap="TwitchStreamerResultMap">
+        SELECT id, twitch_streamer_name
+        FROM twitch_streamer
+        WHERE twitch_streamer_name = #{twitchStreamerName}
+    </select>
+
+    <!-- Select TwitchStreamer by ID -->
+    <select id="selectStreamerById" parameterType="int" resultMap="TwitchStreamerResultMap">
+        SELECT id, twitch_streamer_name
+        FROM twitch_streamer
+        WHERE id = #{id}
+    </select>
+
+    <!-- Insert TwitchStreamer -->
+    <insert id="insertStreamer" parameterType="com.apa.clipfarmer.model.TwitchStreamer" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO twitch_streamer (twitch_streamer_name, broadcaster_id)
+        VALUES (#{twitchStreamerName}, #{broadcasterId})
+    </insert>
+
+
+    <!-- Update TwitchStreamer -->
+    <update id="updateStreamer" parameterType="com.apa.clipfarmer.model.TwitchStreamer">
+        UPDATE twitch_streamer
+        SET twitch_streamer_name = #{twitchStreamerName}
+        WHERE id = #{id}
+    </update>
+
+    <!-- Delete TwitchStreamer -->
+    <delete id="deleteStreamer" parameterType="int">
+        DELETE FROM twitch_streamer WHERE id = #{id}
+    </delete>
+
+</mapper>

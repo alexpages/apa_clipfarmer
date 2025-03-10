@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.apa.clipfarmer.mapper.TwitchClipMapper">
+
+    <resultMap id="TwitchClipResultMap" type="com.apa.clipfarmer.model.TwitchClip">
+        <result property="id" column="ID" />
+        <result property="clipId" column="CLIP_ID" />
+        <result property="title" column="TITLE" />
+        <result property="creatorName" column="CREATOR_NAME" />
+        <result property="viewCount" column="VIEW_COUNT" />
+        <result property="createdAt" column="CREATED_AT" typeHandler="com.apa.clipfarmer.typehandler.LocalDateTimeTypeHandler" />
+        <result property="broadcasterId" column="BROADCASTER_ID" />
+        <result property="url" column="URL" />
+        <result property="duration" column="DURATION" />
+        <result property="language" column="LANGUAGE" />
+    </resultMap>
+
+    <select id="selectAllClips" resultMap="TwitchClipResultMap">
+        SELECT ID, CLIP_ID, TITLE, CREATOR_NAME, VIEW_COUNT, CREATED_AT, BROADCASTER_ID, URL, DURATION, LANGUAGE
+        FROM twitch_clip
+    </select>
+
+    <select id="selectClipById" parameterType="int" resultMap="TwitchClipResultMap">
+        SELECT ID, CLIP_ID, TITLE, CREATOR_NAME, VIEW_COUNT, CREATED_AT, BROADCASTER_ID, URL, DURATION, LANGUAGE
+        FROM twitch_clip
+        WHERE ID = #{id}
+    </select>
+
+    <select id="selectClipByClipId" parameterType="String" resultMap="TwitchClipResultMap">
+        SELECT ID, CLIP_ID, TITLE, CREATOR_NAME, VIEW_COUNT, CREATED_AT, BROADCASTER_ID, URL, DURATION, LANGUAGE
+        FROM twitch_clip
+        WHERE CLIP_ID = #{clipId}
+    </select>
+
+    <insert id="insertClip" parameterType="com.apa.clipfarmer.model.TwitchClip" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO twitch_clip (CLIP_ID, TITLE, CREATOR_NAME, VIEW_COUNT, CREATED_AT, BROADCASTER_ID, URL, DURATION, LANGUAGE)
+        VALUES (#{clipId}, #{title}, #{creatorName}, #{viewCount}, #{createdAt}, #{broadcasterId}, #{url}, #{duration}, #{language})
+    </insert>
+
+
+</mapper>
