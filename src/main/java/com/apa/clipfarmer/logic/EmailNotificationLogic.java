@@ -42,13 +42,13 @@ public class EmailNotificationLogic {
 
     private static String createMessage(String twitchStreamer, Long executionTime) {
         String messageBody = String.format("" +
-                "Execution for streamer [%s] has finalized.\n" +
-                "The execution time was: [%s] seconds", twitchStreamer, executionTime.toString());
+                "Batch execution has finalized for streamer: %s.<br>" +
+                "The execution time was: %s seconds", twitchStreamer, executionTime.toString());
 
         // Format the message body with HTML
         String formattedMessageBody = "<html><body>" +
                 "<h2 style='color: #2C3E50;'>Clip Farmer Notification</h2>" +
-                "<p style='font-size: 16px;'>Hello,</p>" +
+                "<p style='font-size: 16px;'>Hello creator,</p>" +
                 "<p style='font-size: 16px;'>Here is your notification:</p>" +
                 "<blockquote style='background-color: #f4f4f4; padding: 10px; border-left: 5px solid #2980B9;'>" +
                 "<p style='font-style: italic;'>" + messageBody + "</p>" +
