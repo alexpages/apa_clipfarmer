@@ -1,5 +1,7 @@
 package com.apa.clipfarmer.logic.youtube;
 
+import com.apa.clipfarmer.mapper.TwitchHighlightMapper;
+import com.apa.clipfarmer.model.TwitchHighlight;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.googleapis.media.MediaHttpUploader;
@@ -12,11 +14,14 @@ import com.google.api.services.youtube.model.VideoStatus;
 import com.google.common.collect.Lists;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.ibatis.session.SqlSession;
+import org.apache.ibatis.session.SqlSessionFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,14 +35,16 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class YoutubeUploaderLogic {
+
+    private final SqlSessionFactory sqlSessionFactory;
+
     /**
-     * Define a global instance of a Youtube object forYouTube Data API requests.
+     * For YouTube Data API requests.
      */
     private static YouTube youtube;
 
     /**
-     * Define a global variable that specifies the MIME type of the video
-     * being uploaded.
+     * Define a global variable that specifies the MIME type of the video being uploaded.
      */
     private static final String VIDEO_FILE_FORMAT = "video/*";
 
@@ -46,7 +53,7 @@ public class YoutubeUploaderLogic {
      * looks for the video in the application's project folder and uses OAuth
      * 2.0 to authorize the API request.
      */
-    public void uploadHighlightVideo(String youtubeTitle, String youtubeDescription, String pathFileToUpload) {
+    public void uploadHighlightVideo(String youtubeTitle, String youtubeDescription, String pathFileToUpload, String broadcasterId) {
         log.info("Youtube Title for the next upload: {}", youtubeTitle);
         log.info("Youtube Description for the next upload: {}", youtubeDescription);
         log.info("Path to the file to be uploaded: {}", pathFileToUpload);
@@ -55,6 +62,7 @@ public class YoutubeUploaderLogic {
         // to the authenticated user's YouTube channel.
         List<String> scopes = Lists.newArrayList("https://www.googleapis.com/auth/youtube.upload");
 
+        Video returnedVideo = null;
         try {
             // Authorize the request.
             Credential credential = YoutubeAuth.authorize(scopes, "uploadvideo");
@@ -71,7 +79,7 @@ public class YoutubeUploaderLogic {
             System.out.println("Uploading: " + pathFileToUpload);
 
             // Add extra information to the video before uploading.
-            Video videoObjectDefiningMetadata = getMetadata(youtubeTitle, youtubeDescription);
+            Video videoObjectDefiningMetadata = getMetadata(youtubeTitle, youtubeDescription, broadcasterId);
             File videoFile = new File(pathFileToUpload);
             InputStreamContent mediaContent = new InputStreamContent(VIDEO_FILE_FORMAT, new FileInputStream(videoFile));
             mediaContent.setLength(videoFile.length());
@@ -114,7 +122,7 @@ public class YoutubeUploaderLogic {
             uploader.setProgressListener(progressListener);
 
             // Call the API and upload the video.
-            Video returnedVideo = videoInsert.execute();
+            returnedVideo = videoInsert.execute();
 
             // Print data about the newly inserted video from the API response.
             System.out.println("\n================== Returned Video ==================\n");
@@ -132,16 +140,37 @@ public class YoutubeUploaderLogic {
                 System.err.println("GoogleJsonResponseException occurred, but no details were provided.");
             }
             e.printStackTrace();
-        } catch (IOException e) {
-            System.err.println("IOException: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("Exception: " + e.getMessage());
             e.printStackTrace();
-        } catch (Throwable t) {
-            System.err.println("Throwable: " + t.getMessage());
-            t.printStackTrace();
+        }
+        finally {
+            if (returnedVideo != null) {
+                try (SqlSession session = sqlSessionFactory.openSession()) {
+                    // Create a new TwitchHighlight object
+                    TwitchHighlightMapper twitchHighlightMapper = session.getMapper(TwitchHighlightMapper.class);
+
+                    Integer lastId = twitchHighlightMapper.getLastHighlightIdByCreatorName(broadcasterId);
+                    lastId = (lastId == null) ? 1 : lastId + 1;
+
+                    TwitchHighlight twitchHighlight = new TwitchHighlight();
+                    twitchHighlight.setHighlightId(lastId);
+                    twitchHighlight.setTitle(returnedVideo.getSnippet().getTitle());
+                    twitchHighlight.setCreatorName(broadcasterId);
+                    twitchHighlight.setYoutubeUrl("https://www.youtube.com/watch?v=" + returnedVideo.getId());
+                    twitchHighlight.setCreatedAt(LocalDateTime.now());
+
+                    twitchHighlightMapper.insertHighlight(twitchHighlight);
+                    session.commit();
+                    log.info("Twitch highlight inserted successfully: {}", twitchHighlight.getHighlightId());
+                } catch (Exception e) {
+                    log.error("Error inserting Twitch highlight: ", e);
+                }
+            }
         }
     }
 
-    private static Video getMetadata(String youtubeTitle, String youtubeDescription) {
+    private static Video getMetadata(String youtubeTitle, String youtubeDescription, String broadcasterId) {
         Video videoObjectDefiningMetadata = new Video();
 
         VideoStatus status = new VideoStatus();
@@ -154,11 +183,12 @@ public class YoutubeUploaderLogic {
         snippet.setTitle(youtubeTitle);
         snippet.setDescription(youtubeDescription);
 
-        // Set the keyword tags that you want to associate with the video.
+        // Tags
         List<String> tags = new ArrayList<>();
         tags.add("Twitch");
         tags.add("Clip");
         tags.add("Highlight");
+        tags.add(broadcasterId);
         snippet.setTags(tags);
 
         // Add the completed snippet object to the video resource.

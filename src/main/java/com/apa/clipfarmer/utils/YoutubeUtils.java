@@ -1,5 +1,6 @@
 package com.apa.clipfarmer.utils;
 
+import com.apa.clipfarmer.mapper.TwitchHighlightMapper;
 import com.apa.clipfarmer.mapper.TwitchStreamerMapper;
 import com.apa.clipfarmer.model.TwitchClip;
 import com.apa.clipfarmer.model.TwitchStreamer;
@@ -42,9 +43,12 @@ public class YoutubeUtils {
             }
 
             if (isHighlight) {
-                return String.format("Highlight - %s - %s",
-                        twitchStreamer.getTwitchStreamerName(),
-                        title);
+                TwitchHighlightMapper twitchHighlightMapper = session.getMapper(TwitchHighlightMapper.class);
+                Integer lastId = twitchHighlightMapper.getLastHighlightIdByCreatorName(broadcasterId);
+                lastId = (lastId == null) ? 1 : lastId + 1;
+                return String.format("%s TWITCH HIGHLIGHTS #%s",
+                        twitchStreamer.getTwitchStreamerName().toUpperCase(),
+                        lastId);
             } else {
                 return String.format("Twitch Clip - %s - %s",
                         twitchStreamer.getTwitchStreamerName(),

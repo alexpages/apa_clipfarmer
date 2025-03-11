@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.apa.clipfarmer.mapper.TwitchHighlightMapper">
+
+    <resultMap id="TwitchClipResultMap" type="com.apa.clipfarmer.model.TwitchHighlight">
+        <result property="id" column="ID" />
+        <result property="highlightId" column="HIGHLIGHT_ID" />
+        <result property="title" column="TITLE" />
+        <result property="creatorName" column="CREATOR_NAME" />
+        <result property="youtubeUrl" column="YOUTUBE_URL" />
+        <result property="createdAt" column="CREATED_AT" typeHandler="com.apa.clipfarmer.typehandler.LocalDateTimeTypeHandler" />
+    </resultMap>
+
+    <!-- Insert new Twitch Highlight -->
+    <insert id="insertHighlight" parameterType="com.apa.clipfarmer.model.TwitchHighlight">
+        INSERT INTO twitch_highlight (
+        HIGHLIGHT_ID,
+        TITLE,
+        CREATOR_NAME,
+        YOUTUBE_URL,
+        CREATED_AT
+        ) VALUES (
+        #{highlightId},
+        #{title},
+        #{creatorName},
+        #{youtubeUrl},
+        #{createdAt}
+        )
+    </insert>
+
+
+    <!-- Select last HighlightId by creatorName -->
+    <select id="getLastHighlightIdByCreatorName" resultType="int">
+        SELECT HIGHLIGHT_ID
+        FROM twitch_highlight
+        WHERE CREATOR_NAME = #{creatorName}
+        ORDER BY CREATED_AT DESC
+        LIMIT 1
+    </select>
+
+</mapper>

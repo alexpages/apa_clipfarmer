@@ -76,8 +76,8 @@ public class TwitchClipFetcherLogic {
                 allClips.addAll(clips);
                 log.info("All clips retrieved: {}", allClips);
 
-                afterCursor = null;
-//                afterCursor = extractAfterCursor(response); //TODO change back
+//                afterCursor = null;
+                afterCursor = extractAfterCursor(response); //TODO change back
             } while (afterCursor != null);
         } catch (Exception e) {
             log.error("Error fetching clips for streamer {}: {}", streamerName, e.getMessage(), e);

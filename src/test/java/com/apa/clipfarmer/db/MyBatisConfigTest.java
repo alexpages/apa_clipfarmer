@@ -24,5 +24,4 @@ class MyBatisConfigTest {
     @InjectMocks
     private MyBatisConfig myBatisConfig;
 
-
 }

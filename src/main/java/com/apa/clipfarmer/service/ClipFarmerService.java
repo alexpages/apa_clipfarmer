@@ -91,12 +91,11 @@ public class ClipFarmerService {
         // Upload video
         String youtubeDescription = youtubeUtils.createVideoDescription(twitchStreamer.getName());
         String yotubeTitle = youtubeUtils.createVideoTitle(twitchStreamer.getName(), fileName, true);
-//        youtubeUploaderLogic.uploadHighlightVideo(yotubeTitle, youtubeDescription, pathVideoCreated);
+        youtubeUploaderLogic.uploadHighlightVideo(yotubeTitle, youtubeDescription, pathVideoCreated, twitchStreamer.getName());
 
         // Final
         long elapsedTime = (System.currentTimeMillis() - startTime) / 1000;
-        log.info("Video processing took {} seconds", elapsedTime);
-
+        log.info("Batch execution took {} seconds", elapsedTime);
         emailNotificationLogic.sendEmail("Execution finalized", twitchStreamer.getName(), elapsedTime);
 
         // Clean up
