@@ -28,20 +28,11 @@ import java.util.List;
 @Service
 public class YoutubeAuth {
 
-    /**
-     * Define a global instance of the HTTP transport.
-     */
     public static final HttpTransport HTTP_TRANSPORT = new NetHttpTransport();
-
-    /**
-     * Define a global instance of the JSON factory.
-     */
     public static final JsonFactory JSON_FACTORY = new JacksonFactory();
-
-    /**
-     * This is the directory that will be used under the user's home directory where OAuth tokens will be stored.
-     */
     private static final String CREDENTIALS_DIRECTORY = ".oauth-credentials";
+    private static final String CLIENT_SECRETS = "/client_secrets.json";
+
 
     /**
      * Authorizes the installed application to access user's protected data.
@@ -52,7 +43,7 @@ public class YoutubeAuth {
     public static Credential authorize(List<String> scopes, String credentialDatastore) throws IOException {
 
         // Load client secrets.
-        Reader clientSecretReader = new InputStreamReader(YoutubeAuth.class.getResourceAsStream("/client_secrets.json"));
+        Reader clientSecretReader = new InputStreamReader(YoutubeAuth.class.getResourceAsStream(CLIENT_SECRETS));
         GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, clientSecretReader);
 
         // Checks that the defaults have been replaced (Default = "Enter X here").

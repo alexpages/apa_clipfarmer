@@ -1,6 +1,5 @@
 package com.apa.clipfarmer.logic.youtube;
 
-import com.apa.clipfarmer.utils.YoutubeUtils;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.googleapis.media.MediaHttpUploader;
@@ -42,8 +41,6 @@ public class YoutubeUploaderLogic {
      */
     private static final String VIDEO_FILE_FORMAT = "video/*";
 
-    private static final String SAMPLE_VIDEO_FILENAME = "sample-video.mp4";
-
     /**
      * Upload the user-selected video to the user's YouTube channel. The code
      * looks for the video in the application's project folder and uses OAuth
@@ -84,13 +81,12 @@ public class YoutubeUploaderLogic {
             // - Second argument is the metadata
             // - Third argument is the video content.
             YouTube.Videos.Insert videoInsert = youtube.videos()
-                    .insert("snippet,statistics,status", videoObjectDefiningMetadata, mediaContent);
+                    .insert("snippet,statistics,status",
+                            videoObjectDefiningMetadata,
+                            mediaContent);
 
             // Set the upload type and add an event listener.
             MediaHttpUploader uploader = videoInsert.getMediaHttpUploader();
-
-            // "True" uploads in one request
-            // "False" uploads even if there is network
             uploader.setDirectUploadEnabled(false);
 
             MediaHttpUploaderProgressListener progressListener = new MediaHttpUploaderProgressListener() {
