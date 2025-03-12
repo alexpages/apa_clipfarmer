@@ -39,8 +39,6 @@ import java.util.stream.StreamSupport;
 public class TwitchClipFetcherLogic {
 
     private final TwitchUserLogic twitchUserLogic;
-    private static final int STARTED_AT = 5;
-    private static final int MIN_VIEWS = 200;
 
     /**
      * Fetches the top clips for the given streamer and sorts them by view count.
@@ -49,12 +47,12 @@ public class TwitchClipFetcherLogic {
      * @param oAuthToken   The OAuth token for authentication.
      * @return A list of sorted TwitchClip objects.
      */
-    public List<TwitchClip> getTwitchClips(String streamerName, String oAuthToken, int durationOfClip) {
+    public List<TwitchClip> getTwitchClips(String streamerName, String oAuthToken, int clipDuration, int minimumViews, int daysAgo) {
         String broadcasterId = twitchUserLogic.getBroadcasterId(streamerName, oAuthToken);
         String url = UriComponentsBuilder.fromHttpUrl(TwitchConstants.TWITCH_CLIP_API)
                 .queryParam("broadcaster_id", broadcasterId)
-                .queryParam("started_at", Instant.now().minus(STARTED_AT, ChronoUnit.DAYS)) // Clips from 5 days ago
-                .queryParam("first", 10)
+                .queryParam("started_at", Instant.now().minus(daysAgo, ChronoUnit.DAYS))
+                .queryParam("first", 20)
                 .toUriString();
 
         HttpHeaders headers = new HttpHeaders();
@@ -72,10 +70,9 @@ public class TwitchClipFetcherLogic {
                 String pageUrl = (afterCursor != null) ? url + "&after=" + afterCursor : url;
                 ResponseEntity<String> response = restTemplate.exchange(pageUrl, HttpMethod.GET, entity, String.class);
                 log.info("Response from Twitch Clip API: {}", response.getBody());
-                List<TwitchClip> clips = convertResponseBodyToTwitchClips(response, durationOfClip);
+                List<TwitchClip> clips = convertResponseBodyToTwitchClips(response, clipDuration, minimumViews);
                 allClips.addAll(clips);
                 log.info("All clips retrieved: {}", allClips);
-
 //                afterCursor = null;
                 afterCursor = extractAfterCursor(response); //TODO change back
             } while (afterCursor != null);
@@ -83,7 +80,7 @@ public class TwitchClipFetcherLogic {
             log.error("Error fetching clips for streamer {}: {}", streamerName, e.getMessage(), e);
             throw new RuntimeException("Failed to fetch Twitch clips.", e);
         }
-
+        allClips.forEach(clip -> log.info("Clip ID: {}, View Count: {}", clip.getId(), clip.getViewCount()));
         return allClips;
     }
 
@@ -112,7 +109,7 @@ public class TwitchClipFetcherLogic {
      * @param responseBody The response body from the RestTemplate call.
      * @return A list of sorted TwitchClip objects.
      */
-    private static List<TwitchClip> convertResponseBodyToTwitchClips(ResponseEntity<String> responseBody, int durationOfClip) {
+    private static List<TwitchClip> convertResponseBodyToTwitchClips(ResponseEntity<String> responseBody, int durationOfClip, int minimumViews) {
         List<TwitchClip> twitchClips = new ArrayList<>();
         if (!responseBody.hasBody()) {
             return twitchClips;
@@ -143,11 +140,10 @@ public class TwitchClipFetcherLogic {
                                 clipNode.get("language").asText()
                         );
                     })
-                    .filter(clip -> clip.getDuration() >= durationOfClip)                   // Remove clips with duration < 10
-                    .filter(clip -> clip.getViewCount() > MIN_VIEWS)                        // Remove clips with viewCount <= 600
+                    .filter(clip -> clip.getDuration() >= durationOfClip)
+                    .filter(clip -> clip.getViewCount() >= minimumViews)
                     .sorted(Comparator.comparingInt(TwitchClip::getViewCount).reversed())   // Sort by viewCount (desc)
                     .collect(Collectors.toList());
-            log.info("Collected twitchClips: {}", twitchClips);
         } catch (IOException e) {
             log.error("Error parsing response body: {}", e.getMessage(), e);
         }

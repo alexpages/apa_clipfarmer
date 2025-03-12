@@ -42,6 +42,9 @@ public class ClipFarmerService {
     private final YoutubeUploaderLogic youtubeUploaderLogic;
 
     private static final int CLIP_DURATION = 10;
+    private static final int MIN_VIEWS = 400;
+    private static final int DAYS_AGO = 5;
+
     private static final String DOWNLOAD_DIRECTORY = "build/downloads/";
     private static final String OUTPUT_DIRECTORY = "build/output/";
     private static final String MERGED_VIDEO_FILENAME = "_merged_video.mp4";
@@ -53,6 +56,7 @@ public class ClipFarmerService {
      */
     public void execute(String[] args) {
         long startTime = System.currentTimeMillis();
+
         // Get streamer name
         ClipFarmerArgs clipFarmerArgs = parseArguments(args);
         if (clipFarmerArgs == null) return;
@@ -67,7 +71,7 @@ public class ClipFarmerService {
         if (twitchOAuthToken == null) return;
         try (SqlSession session = sqlSessionFactory.openSession()) {
             List<TwitchClip> twitchClips = twitchClipFetcherLogic.getTwitchClips(
-                    twitchStreamer.getName(), twitchOAuthToken, CLIP_DURATION);
+                    twitchStreamer.getName(), twitchOAuthToken, CLIP_DURATION, MIN_VIEWS, DAYS_AGO);
             log.info("Total amount of clips retrieved for broadcasterId [{}] is: [{}]", twitchStreamer.getName(), twitchClips.size());
             TwitchClipMapper mapper = session.getMapper(TwitchClipMapper.class);
 
@@ -93,7 +97,7 @@ public class ClipFarmerService {
         String yotubeTitle = youtubeUtils.createVideoTitle(twitchStreamer.getName(), fileName, true);
         youtubeUploaderLogic.uploadHighlightVideo(yotubeTitle, youtubeDescription, pathVideoCreated, twitchStreamer.getName());
 
-        // Final
+        // Send email notification
         long elapsedTime = (System.currentTimeMillis() - startTime) / 1000;
         log.info("Batch execution took {} seconds", elapsedTime);
         emailNotificationLogic.sendEmail("Execution finalized", twitchStreamer.getName(), elapsedTime);
