@@ -52,7 +52,7 @@ public class TwitchClipFetcherLogic {
         String url = UriComponentsBuilder.fromHttpUrl(TwitchConstants.TWITCH_CLIP_API)
                 .queryParam("broadcaster_id", broadcasterId)
                 .queryParam("started_at", Instant.now().minus(daysAgo, ChronoUnit.DAYS))
-                .queryParam("first", 20)
+                .queryParam("first", 5)
                 .toUriString();
 
         HttpHeaders headers = new HttpHeaders();
@@ -73,8 +73,8 @@ public class TwitchClipFetcherLogic {
                 List<TwitchClip> clips = convertResponseBodyToTwitchClips(response, clipDuration, minimumViews);
                 allClips.addAll(clips);
                 log.info("All clips retrieved: {}", allClips);
-//                afterCursor = null;
-                afterCursor = extractAfterCursor(response); //TODO change back
+                afterCursor = null;
+//                afterCursor = extractAfterCursor(response); //TODO change back
             } while (afterCursor != null);
         } catch (Exception e) {
             log.error("Error fetching clips for streamer {}: {}", streamerName, e.getMessage(), e);
