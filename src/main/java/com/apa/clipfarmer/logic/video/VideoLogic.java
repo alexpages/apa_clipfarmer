@@ -33,7 +33,7 @@ public class VideoLogic {
      * @param videoPaths      List of file paths of the videos to concatenate.
      * @param outputFileName  Name of the output file.
      */
-    public String concatenateVideos(List<String> videoPaths, String outputFileName) {
+    public String concatenateVideos(List<String> videoPaths, String outputFileName, List<Integer> lClipDuration) {
         long startTime = System.currentTimeMillis();
 
         new File(OUTPUT_FOLDER).mkdirs();
@@ -42,7 +42,7 @@ public class VideoLogic {
             return null;
         }
 
-        log.info("Starting video concatenation: {}", outputFileName);
+        log.info("Starting video concatenation with fade transitions: {}", outputFileName);
 
         File outputFile = new File(outputFileName);
         if (outputFile.exists() && !outputFile.delete()) {
@@ -50,6 +50,7 @@ public class VideoLogic {
             return null;
         }
 
+        // Create a temporary file to store concatenation input
         File tempFile = createConcatFile(videoPaths);
         if (tempFile == null) {
             log.error("Failed to create concat input file.");
@@ -80,11 +81,41 @@ public class VideoLogic {
         } catch (Exception e) {
             log.error("Error during video processing", e);
         } finally {
-            tempFile.delete();
+            tempFile.delete(); // Clean up temp file
         }
         long elapsedTime = (System.currentTimeMillis() - startTime) / 1000;
         log.info("Video processing took {} seconds", elapsedTime);
         return outputFileName;
+    }
+
+    /**
+     * Executes an FFmpeg command.
+     */
+    private void executeFFmpegCommand(String command) throws IOException, InterruptedException {
+        Process process = Runtime.getRuntime().exec(command);
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                log.error("FFmpeg: " + line);
+            }
+        }
+        process.waitFor();
+    }
+
+    /**
+     * Creates a temporary text file listing the input video paths for FFmpeg.
+     */
+    private File createConcatFile(List<String> videoPaths) {
+        File tempFile = new File(OUTPUT_FOLDER + "input.txt");
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile))) {
+            for (String videoPath : videoPaths) {
+                writer.write("file '" + videoPath + "'\n");
+            }
+        } catch (IOException e) {
+            log.error("Error writing to concat file", e);
+            return null;
+        }
+        return tempFile;
     }
 
     /**
@@ -109,38 +140,4 @@ public class VideoLogic {
         }
         return videoPaths;
     }
-
-    /**
-     * Creates a temporary text file listing the input video paths for FFmpeg.
-     */
-    private File createConcatFile(List<String> videoPaths) {
-        File tempFile = new File(OUTPUT_FOLDER + "input.txt");
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile))) {
-            int videoCount = 1;
-            for (String videoPath : videoPaths) {
-                log.info("Concatenation, video {} out of {}", videoCount, videoPaths.size());
-                writer.write("file '" + videoPath + "'\n");
-                videoCount++;
-            }
-        } catch (IOException e) {
-            log.error("Error writing to concat file", e);
-            return null;
-        }
-        return tempFile;
-    }
-
-    /**
-     * Executes an FFmpeg command.
-     */
-    private void executeFFmpegCommand(String command) throws IOException, InterruptedException {
-        Process process = Runtime.getRuntime().exec(command);
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                log.error("FFmpeg: " + line);
-            }
-        }
-        process.waitFor();
-    }
-
 }
