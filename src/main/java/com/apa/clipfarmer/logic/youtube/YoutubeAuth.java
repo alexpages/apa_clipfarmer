@@ -12,13 +12,12 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.client.util.store.DataStore;
 import com.google.api.client.util.store.FileDataStoreFactory;
-import org.springframework.stereotype.Service;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.List;
+import org.springframework.stereotype.Service;
 
 /**
  * Shared class used by every sample. Contains methods for authorizing a user and caching credentials.
@@ -28,20 +27,11 @@ import java.util.List;
 @Service
 public class YoutubeAuth {
 
-    /**
-     * Define a global instance of the HTTP transport.
-     */
     public static final HttpTransport HTTP_TRANSPORT = new NetHttpTransport();
-
-    /**
-     * Define a global instance of the JSON factory.
-     */
     public static final JsonFactory JSON_FACTORY = new JacksonFactory();
-
-    /**
-     * This is the directory that will be used under the user's home directory where OAuth tokens will be stored.
-     */
     private static final String CREDENTIALS_DIRECTORY = ".oauth-credentials";
+    private static final String CLIENT_SECRETS = "/client_secrets.json";
+
 
     /**
      * Authorizes the installed application to access user's protected data.
@@ -52,7 +42,7 @@ public class YoutubeAuth {
     public static Credential authorize(List<String> scopes, String credentialDatastore) throws IOException {
 
         // Load client secrets.
-        Reader clientSecretReader = new InputStreamReader(YoutubeAuth.class.getResourceAsStream("/client_secrets.json"));
+        Reader clientSecretReader = new InputStreamReader(YoutubeAuth.class.getResourceAsStream(CLIENT_SECRETS));
         GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, clientSecretReader);
 
         // Checks that the defaults have been replaced (Default = "Enter X here").

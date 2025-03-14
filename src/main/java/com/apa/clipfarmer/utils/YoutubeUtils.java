@@ -1,8 +1,11 @@
 package com.apa.clipfarmer.utils;
 
+import com.apa.clipfarmer.mapper.TwitchHighlightMapper;
 import com.apa.clipfarmer.mapper.TwitchStreamerMapper;
-import com.apa.clipfarmer.model.TwitchClip;
 import com.apa.clipfarmer.model.TwitchStreamer;
+import java.time.LocalDateTime;
+import java.time.format.TextStyle;
+import java.util.Locale;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.session.SqlSession;
@@ -42,9 +45,14 @@ public class YoutubeUtils {
             }
 
             if (isHighlight) {
-                return String.format("Highlight - %s - %s",
-                        twitchStreamer.getTwitchStreamerName(),
-                        title);
+                TwitchHighlightMapper twitchHighlightMapper = session.getMapper(TwitchHighlightMapper.class);
+                Integer lastId = twitchHighlightMapper.getLastHighlightIdByCreatorName(broadcasterId);
+                lastId = (lastId == null) ? 1 : lastId + 1;
+                String month = LocalDateTime.now().getMonth().getDisplayName(TextStyle.SHORT, Locale.ENGLISH).toUpperCase();
+                return String.format("%s HIGHLIGHTS TWITCH %s #%s",
+                        twitchStreamer.getTwitchStreamerName().toUpperCase(),
+                        month,
+                        lastId);
             } else {
                 return String.format("Twitch Clip - %s - %s",
                         twitchStreamer.getTwitchStreamerName(),
@@ -73,6 +81,8 @@ public class YoutubeUtils {
             }
 
             return String.format("""
+                This is a compilation of the most viewed clips from %s from %s.
+                
                 Follow %s on Twitch:
                 ► Twitch: %s%s
 
@@ -81,9 +91,12 @@ public class YoutubeUtils {
                 ► %s
                 """,
                     twitchStreamer.getTwitchStreamerName(),
+                    LocalDateTime.now().getMonth().getDisplayName(TextStyle.FULL, Locale.ENGLISH),
+                    twitchStreamer.getTwitchStreamerName(),
                     TWITCH_URL,
                     twitchStreamer.getTwitchStreamerName(),
                     CLIP_FARMER_CONTACT);
+
         } catch (Exception e) {
             log.error("Error creating YouTube video description for broadcasterId {}: {}", broadcasterId, e.getMessage(), e);
             throw new IllegalStateException("Failed to create video description due to an internal error.", e);

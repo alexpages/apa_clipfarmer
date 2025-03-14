@@ -1,9 +1,5 @@
 package com.apa.clipfarmer.logic.video;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -12,6 +8,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 /**
  * Service that generates different video formats to be uploaded on different platforms.
@@ -24,8 +23,6 @@ import java.util.List;
 public class VideoLogic {
 
     private static final String OUTPUT_FOLDER = "build/output/";
-    private static final String WATERMARK_TEXT = "/clipFarmer";
-    private static final String WATERMARK_IMAGE = "build/resources/watermark.png";
 
     /**
      * Concatenates multiple video files into a single output file with a watermark.
@@ -60,21 +57,8 @@ public class VideoLogic {
             // Step 1: Concatenate videos
             log.info("Initializing video concatenation...");
             String concatCommand = String.format("ffmpeg -f concat -safe 0 -i %s -c copy %s", tempFile.getAbsolutePath(), outputFileName);
-
-//            String concatCommand = String.format(
-//                    "ffmpeg -f concat -safe 0 -i %s -c:v libx264 -preset fast -crf 23 -c:a aac -b:a 128k -threads 4 %s",
-//                    tempFile.getAbsolutePath(), tempMergedFile
-//            );
             executeFFmpegCommand(concatCommand);
             log.info("Video concatenation completed: {}", outputFileName);
-
-            // Step 2: Add watermark
-            log.info("Adding watermark to video...");
-            String watermarkCommand = String.format(
-                    "ffmpeg -i %s -vf \"drawtext=text='%s':fontcolor=white:fontsize=24:x=10:y=h-th-10\" -c:v libx264 -preset fast -crf 23 -c:a aac -b:a 128k %s",
-                    outputFileName, WATERMARK_TEXT, outputFileName
-            );
-//            executeFFmpegCommand(watermarkCommand);
 
             log.info("Video processing completed successfully: {}", outputFileName);
         } catch (Exception e) {
@@ -142,5 +126,4 @@ public class VideoLogic {
         }
         process.waitFor();
     }
-
 }

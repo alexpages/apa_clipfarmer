@@ -1,7 +1,6 @@
 package com.apa.clipfarmer.model;
 
 import java.time.LocalDateTime;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 
 /**
@@ -10,17 +9,13 @@ import lombok.Data;
  * @author alexpages
  */
 @Data
-@AllArgsConstructor
-public class TwitchClip {
+public class TwitchHighlight {
 
     private Long id;
-    private String clipId;
+    private Integer highlightId;
     private String title;
     private String creatorName;
-    private Integer viewCount;
+    private String youtubeUrl;
     private LocalDateTime createdAt;
-    private String broadcasterId;
-    private String url;
-    private int duration; // in seconds
-    private String language;
+
 }
