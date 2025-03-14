@@ -1,13 +1,12 @@
 package com.apa.clipfarmer.db;
 
+import java.io.InputStream;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.session.SqlSessionFactoryBuilder;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.io.InputStream;
 
 @ExtendWith(MockitoExtension.class)
 class MyBatisConfigTest {

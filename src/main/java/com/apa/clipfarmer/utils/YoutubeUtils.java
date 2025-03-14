@@ -2,8 +2,10 @@ package com.apa.clipfarmer.utils;
 
 import com.apa.clipfarmer.mapper.TwitchHighlightMapper;
 import com.apa.clipfarmer.mapper.TwitchStreamerMapper;
-import com.apa.clipfarmer.model.TwitchClip;
 import com.apa.clipfarmer.model.TwitchStreamer;
+import java.time.LocalDateTime;
+import java.time.format.TextStyle;
+import java.util.Locale;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.session.SqlSession;
@@ -46,8 +48,10 @@ public class YoutubeUtils {
                 TwitchHighlightMapper twitchHighlightMapper = session.getMapper(TwitchHighlightMapper.class);
                 Integer lastId = twitchHighlightMapper.getLastHighlightIdByCreatorName(broadcasterId);
                 lastId = (lastId == null) ? 1 : lastId + 1;
-                return String.format("%s TWITCH HIGHLIGHTS #%s",
+                String month = LocalDateTime.now().getMonth().getDisplayName(TextStyle.SHORT, Locale.ENGLISH).toUpperCase();
+                return String.format("%s HIGHLIGHTS TWITCH %s #%s",
                         twitchStreamer.getTwitchStreamerName().toUpperCase(),
+                        month,
                         lastId);
             } else {
                 return String.format("Twitch Clip - %s - %s",

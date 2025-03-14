@@ -3,6 +3,7 @@ package com.apa.clipfarmer.logic.twitch;
 import com.apa.clipfarmer.model.TwitchConstants;
 import com.apa.clipfarmer.utils.HttpUtils;
 import com.fasterxml.jackson.databind.JsonNode;
+import java.util.Optional;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
@@ -13,8 +14,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-
-import java.util.Optional;
 
 /**
  * Class that gathers all Twitch logic: authentication, data fetching, etc.

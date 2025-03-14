@@ -1,9 +1,8 @@
 package com.apa.clipfarmer.mapper;
 
 import com.apa.clipfarmer.model.TwitchClip;
-import org.apache.ibatis.annotations.Mapper;
-
 import java.util.List;
+import org.apache.ibatis.annotations.Mapper;
 
 /**
  * MyBatis Mapper Interface for TwitchClip database operations.

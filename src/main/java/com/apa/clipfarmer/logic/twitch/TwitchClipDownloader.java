@@ -2,11 +2,6 @@ package com.apa.clipfarmer.logic.twitch;
 
 import com.apa.clipfarmer.model.TwitchClip;
 import com.apa.clipfarmer.model.TwitchStreamerNameEnum;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.json.JSONObject;
-import org.springframework.stereotype.Service;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -18,6 +13,10 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.json.JSONObject;
+import org.springframework.stereotype.Service;
 
 import static com.apa.clipfarmer.model.TwitchConstants.TWITCH_GQL_URL;
 import static com.apa.clipfarmer.model.TwitchConstants.TWITCH_GRAPHQL_CLIENT_ID;

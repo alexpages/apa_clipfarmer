@@ -1,10 +1,9 @@
 package com.apa.clipfarmer.mapper;
 
 import com.apa.clipfarmer.model.TwitchHighlight;
+import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-
-import java.util.List;
 
 /**
  * Interface for TwitchHighlight data access operations.
