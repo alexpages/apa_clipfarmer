@@ -36,7 +36,7 @@ public class TwitchClipDownloader {
     /**
      * Downloads a Twitch clip using the provided URL and OAuth token.
      *
-     * @param clipUrl     the URL of the Twitch clip
+     * @param clipUrl the URL of the Twitch clip
      */
     public void downloadFile(String clipUrl, TwitchClip twitchClip, TwitchStreamerNameEnum twitchStreamer) {
         log.info("Starting download for clip: {}", clipUrl);

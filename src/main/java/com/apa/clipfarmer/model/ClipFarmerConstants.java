@@ -10,5 +10,5 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class ClipFarmerConstants {
 
-    public static final String CLIP_FARMER_CONTACT = "xx@gmail.com";
+    public static final String CLIP_FARMER_CONTACT = "twitchclipmediacontact@gmail.com";
 }

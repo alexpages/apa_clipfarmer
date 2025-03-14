@@ -81,6 +81,8 @@ public class YoutubeUtils {
             }
 
             return String.format("""
+                This is a compilation of the most viewed clips from %s from %s.
+                
                 Follow %s on Twitch:
                 ► Twitch: %s%s
 
@@ -89,9 +91,12 @@ public class YoutubeUtils {
                 ► %s
                 """,
                     twitchStreamer.getTwitchStreamerName(),
+                    LocalDateTime.now().getMonth().getDisplayName(TextStyle.FULL, Locale.ENGLISH),
+                    twitchStreamer.getTwitchStreamerName(),
                     TWITCH_URL,
                     twitchStreamer.getTwitchStreamerName(),
                     CLIP_FARMER_CONTACT);
+
         } catch (Exception e) {
             log.error("Error creating YouTube video description for broadcasterId {}: {}", broadcasterId, e.getMessage(), e);
             throw new IllegalStateException("Failed to create video description due to an internal error.", e);
