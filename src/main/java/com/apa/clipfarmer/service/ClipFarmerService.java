@@ -100,7 +100,7 @@ public class ClipFarmerService {
         String outputFileName = OUTPUT_DIRECTORY + twitchStreamer.getName() + fileName;
 
         // Process videos
-        String pathVideoCreated = videoLogic.concatenateVideos(clipDurationsMap, outputFileName);
+        String pathVideoCreated = videoLogic.concatenateVideos(clipDurationsMap.keySet().stream().toList(), outputFileName);
         log.info("pathVideoCreated is: {}", pathVideoCreated);
 
         // Upload video
