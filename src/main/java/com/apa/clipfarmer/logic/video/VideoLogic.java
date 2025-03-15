@@ -11,6 +11,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -24,76 +25,216 @@ import java.util.List;
 public class VideoLogic {
 
     private static final String OUTPUT_FOLDER = "build/output/";
+    private static final int TRANSITION_DURATION = 1; // Transition duration in seconds
 
     /**
-     * Concatenates multiple video files into a single output file with a watermark.
+     * Concatenates multiple video files into a single output file with smooth transitions.
      *
      * @param videoPaths      List of file paths of the videos to concatenate.
      * @param outputFileName  Name of the output file.
+     * @param lClipDuration   List of durations for each clip in seconds.
+     * @return The path to the output file, or null if concatenation failed.
      */
     public String concatenateVideos(List<String> videoPaths, String outputFileName, List<Integer> lClipDuration) {
         long startTime = System.currentTimeMillis();
 
-        new File(OUTPUT_FOLDER).mkdirs();
+        // Ensure output directory exists
+        File outputDir = new File(OUTPUT_FOLDER);
+        outputDir.mkdirs();
+
         if (videoPaths == null || videoPaths.isEmpty()) {
             log.error("No video files provided for concatenation.");
             return null;
         }
 
-        log.info("Starting video concatenation with fade transitions: {}", outputFileName);
-
-        File outputFile = new File(outputFileName);
-        if (outputFile.exists() && !outputFile.delete()) {
-            log.error("Failed to delete existing output file: {}", outputFileName);
+        if (lClipDuration == null || lClipDuration.size() != videoPaths.size()) {
+            log.error("Clip durations list is invalid or doesn't match the number of video files.");
             return null;
         }
 
-        // Create a temporary file to store concatenation input
-        File tempFile = createConcatFile(videoPaths);
-        if (tempFile == null) {
-            log.error("Failed to create concat input file.");
+        // Verify all input files exist before starting
+        for (String path : videoPaths) {
+            File file = new File(path);
+            if (!file.exists() || !file.isFile()) {
+                log.error("Input file does not exist or is not accessible: {}", path);
+                return null;
+            }
+        }
+
+        log.info("Starting video concatenation with synchronized audio/video transitions: {}", outputFileName);
+
+        // Create absolute path for output file if it's a relative path
+        File outputFile = new File(outputFileName);
+        if (!outputFile.isAbsolute()) {
+            outputFile = new File(System.getProperty("user.dir"), outputFileName);
+        }
+
+        if (outputFile.exists() && !outputFile.delete()) {
+            log.error("Failed to delete existing output file: {}", outputFile.getAbsolutePath());
             return null;
         }
 
         try {
-            // Step 1: Concatenate videos
-            log.info("Initializing video concatenation...");
-            String concatCommand = String.format("ffmpeg -f concat -safe 0 -i %s -c copy %s", tempFile.getAbsolutePath(), outputFileName);
+            // Create temporary folder for processed clips with absolute path
+            File tempDir = new File(System.getProperty("user.dir"), OUTPUT_FOLDER + "temp");
+            tempDir.mkdirs();
+            log.debug("Created temp directory at: {}", tempDir.getAbsolutePath());
+
+            List<String> processedClips = new ArrayList<>();
+
+            // Process each clip with fade in/out for both video and audio
+            for (int i = 0; i < videoPaths.size(); i++) {
+                String inputFile = videoPaths.get(i);
+                File processedFile = new File(tempDir, "clip_" + i + ".mp4");
+                String processedFilePath = processedFile.getAbsolutePath();
+                processedClips.add(processedFilePath);
+
+                log.debug("Processing clip {}: {} -> {}", i, inputFile, processedFilePath);
+
+                List<String> command = new ArrayList<>();
+                command.add("ffmpeg");
+                command.add("-i");
+                command.add(inputFile);
+
+                // First clip gets only fade out
+                if (i == 0) {
+                    command.add("-vf");
+                    command.add(String.format("fade=t=out:st=%d:d=%d",
+                            lClipDuration.get(i) - TRANSITION_DURATION, TRANSITION_DURATION));
+                    command.add("-af");
+                    command.add(String.format("afade=t=out:st=%d:d=%d",
+                            lClipDuration.get(i) - TRANSITION_DURATION, TRANSITION_DURATION));
+                }
+                // Last clip gets only fade in
+                else if (i == videoPaths.size() - 1) {
+                    command.add("-vf");
+                    command.add(String.format("fade=t=in:st=0:d=%d", TRANSITION_DURATION));
+                    command.add("-af");
+                    command.add(String.format("afade=t=in:st=0:d=%d", TRANSITION_DURATION));
+                }
+                // Middle clips get both fade in and fade out
+                else {
+                    command.add("-vf");
+                    command.add(String.format("fade=t=in:st=0:d=%d,fade=t=out:st=%d:d=%d",
+                            TRANSITION_DURATION,
+                            lClipDuration.get(i) - TRANSITION_DURATION,
+                            TRANSITION_DURATION));
+                    command.add("-af");
+                    command.add(String.format("afade=t=in:st=0:d=%d,afade=t=out:st=%d:d=%d",
+                            TRANSITION_DURATION,
+                            lClipDuration.get(i) - TRANSITION_DURATION,
+                            TRANSITION_DURATION));
+                }
+
+                command.add("-y"); // Overwrite output files without asking
+                command.add(processedFilePath);
+
+                executeFFmpegCommand(command.toArray(new String[0]));
+
+                // Verify the processed file was created
+                if (!processedFile.exists()) {
+                    log.error("Failed to create processed clip: {}", processedFilePath);
+                    return null;
+                }
+            }
+
+            // Create a temporary file to store concatenation input
+            File tempFile = createConcatFile(processedClips);
+            if (tempFile == null) {
+                log.error("Failed to create concat input file.");
+                return null;
+            }
+
+            log.debug("Created concat file at: {} with content for {} files", tempFile.getAbsolutePath(), processedClips.size());
+
+            // Concatenate processed clips
+            log.info("Concatenating processed clips...");
+            String[] concatCommand = {
+                    "ffmpeg",
+                    "-f", "concat",
+                    "-safe", "0",
+                    "-i", tempFile.getAbsolutePath(),
+                    "-c", "copy",
+                    "-y", // Overwrite output files without asking
+                    outputFile.getAbsolutePath()
+            };
             executeFFmpegCommand(concatCommand);
-            log.info("Video processing completed successfully: {}", outputFileName);
+
+            // Clean up
+            if (!tempFile.delete()) {
+                log.warn("Failed to delete temporary concat file: {}", tempFile.getAbsolutePath());
+            }
+
+            for (String clip : processedClips) {
+                File clipFile = new File(clip);
+                if (!clipFile.delete()) {
+                    log.warn("Failed to delete temporary clip file: {}", clip);
+                }
+            }
+
+            if (!tempDir.delete()) {
+                log.warn("Failed to delete temporary directory: {}", tempDir.getAbsolutePath());
+            }
+
+            log.info("Video processing completed successfully: {}", outputFile.getAbsolutePath());
+
+            return outputFile.getAbsolutePath();
 
         } catch (Exception e) {
             log.error("Error during video processing", e);
+            return null;
         } finally {
-            tempFile.delete(); // Clean up temp file
+            long elapsedTime = (System.currentTimeMillis() - startTime) / 1000;
+            log.info("Video processing took {} seconds", elapsedTime);
         }
-        long elapsedTime = (System.currentTimeMillis() - startTime) / 1000;
-        log.info("Video processing took {} seconds", elapsedTime);
-        return outputFileName;
     }
 
     /**
-     * Executes an FFmpeg command.
+     * Executes an FFmpeg command using array of arguments to handle paths with spaces correctly.
      */
-    private void executeFFmpegCommand(String command) throws IOException, InterruptedException {
-        Process process = Runtime.getRuntime().exec(command);
+    private void executeFFmpegCommand(String[] command) throws IOException, InterruptedException {
+        log.debug("Executing FFmpeg command: {}", Arrays.toString(command));
+
+        ProcessBuilder processBuilder = new ProcessBuilder(command);
+        processBuilder.redirectErrorStream(false); // Keep stderr separate for logging
+        Process process = processBuilder.start();
+
+        // Handle standard output
+        new Thread(() -> {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    log.debug("FFmpeg stdout: {}", line);
+                }
+            } catch (IOException e) {
+                log.error("Error reading FFmpeg stdout", e);
+            }
+        }).start();
+
+        // Handle error output
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                log.error("FFmpeg: " + line);
+                log.debug("FFmpeg: {}", line);
             }
         }
-        process.waitFor();
+
+        int exitCode = process.waitFor();
+        if (exitCode != 0) {
+            log.error("FFmpeg command failed with exit code: {}", exitCode);
+            throw new RuntimeException("FFmpeg command failed with exit code: " + exitCode);
+        }
     }
 
     /**
      * Creates a temporary text file listing the input video paths for FFmpeg.
      */
     private File createConcatFile(List<String> videoPaths) {
-        File tempFile = new File(OUTPUT_FOLDER + "input.txt");
+        File tempFile = new File(System.getProperty("user.dir"), OUTPUT_FOLDER + "input.txt");
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile))) {
             for (String videoPath : videoPaths) {
-                writer.write("file '" + videoPath + "'\n");
+                // Use proper escaping for paths in the concat file
+                writer.write("file '" + videoPath.replace("'", "'\\''") + "'\n");
             }
         } catch (IOException e) {
             log.error("Error writing to concat file", e);
