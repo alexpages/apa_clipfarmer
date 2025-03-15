@@ -56,10 +56,8 @@ public class TwitchClipDownloader {
         log.info("Clip video URL has been extracted successfully: {}", oVideoUrl.get());
         String folder = OUTPUT_FOLDER + twitchStreamer.getName();
         String outputFileName = String.format(
-                "%s/clip_%s_%s_%s.mp4",
+                "%s/%s.mp4",
                 folder,
-                twitchClip.getLanguage(),
-                twitchClip.getBroadcasterId(),
                 twitchClip.getClipId()
         );
         downloadVideo(oVideoUrl.get(), outputFileName, folder);

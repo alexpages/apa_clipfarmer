@@ -13,13 +13,16 @@ import com.apa.clipfarmer.model.TwitchStreamerNameEnum;
 import com.apa.clipfarmer.utils.FileUtils;
 import com.apa.clipfarmer.utils.YoutubeUtils;
 import com.beust.jcommander.JCommander;
+import java.nio.file.Paths;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.springframework.stereotype.Service;
 
-import java.nio.file.Paths;
+
 import java.util.List;
 
 /**
@@ -69,6 +72,8 @@ public class ClipFarmerService {
         // Get clips and download them
         String twitchOAuthToken = retrieveTwitchOAuthToken();
         if (twitchOAuthToken == null) return;
+
+        Map<String, Double> clipDurationsMap = new LinkedHashMap<>();
         try (SqlSession session = sqlSessionFactory.openSession()) {
             List<TwitchClip> twitchClips = twitchClipFetcherLogic.getTwitchClips(
                     twitchStreamer.getName(), twitchOAuthToken, CLIP_DURATION, MIN_VIEWS, DAYS_AGO);
@@ -76,20 +81,22 @@ public class ClipFarmerService {
             TwitchClipMapper mapper = session.getMapper(TwitchClipMapper.class);
 
             for (TwitchClip clip : twitchClips) {
-                processClip(clip, mapper, session, twitchStreamer);
+                String clipFilePath = DOWNLOAD_DIRECTORY + twitchStreamer.getName() + "/" + clip.getClipId() + ".mp4";
+                double duration = processClip(clip, mapper, session, twitchStreamer);
+                if (duration != 0.0) {
+                    clipDurationsMap.put(clipFilePath, duration);
+                }
             }
         } catch (Exception e) {
             log.error("Unexpected error during execution", e);
         }
 
         // Create summary videos after previous download
-        String directoryPath = DOWNLOAD_DIRECTORY + twitchStreamer.getName();
         String fileName = MERGED_VIDEO_FILENAME;
         String outputFileName = OUTPUT_DIRECTORY + twitchStreamer.getName() + fileName;
 
         // Process videos
-        List<String> videoPaths = videoLogic.getVideoPaths(directoryPath);
-        String pathVideoCreated = videoLogic.concatenateVideos(videoPaths, outputFileName);
+        String pathVideoCreated = videoLogic.concatenateVideos(clipDurationsMap, outputFileName);
         log.info("pathVideoCreated is: {}", pathVideoCreated);
 
         // Upload video
@@ -147,18 +154,20 @@ public class ClipFarmerService {
      * @param mapper     The TwitchClipMapper instance.
      * @param session    The SQL session.
      */
-    private void processClip(TwitchClip twitchClip, TwitchClipMapper mapper, SqlSession session, TwitchStreamerNameEnum twitchStreamer) {
+    private double processClip(TwitchClip twitchClip, TwitchClipMapper mapper, SqlSession session, TwitchStreamerNameEnum twitchStreamer) {
         try {
             if (mapper.selectClipByClipId(twitchClip.getClipId()) != null) {
                 log.info("Clip {} already exists in DB, skipping.", twitchClip.getClipId());
-                return;
+                return 0.0;
             }
             twitchClipDownloader.downloadFile(twitchClip.getUrl(), twitchClip, twitchStreamer);
             mapper.insertClip(twitchClip);
             session.commit();
             log.info("Inserted new clip {} into the database.", twitchClip.getClipId());
+            return (double) twitchClip.getDuration();
         } catch (Exception e) {
             log.error("Error processing clip {}: {}", twitchClip.getClipId(), e.getMessage(), e);
+            return 0;
         }
     }
 }
