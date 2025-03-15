@@ -10,8 +10,10 @@ import com.apa.clipfarmer.mapper.TwitchClipMapper;
 import com.apa.clipfarmer.model.ClipFarmerArgs;
 import com.apa.clipfarmer.model.TwitchClip;
 import com.apa.clipfarmer.model.TwitchStreamerNameEnum;
+import com.apa.clipfarmer.utils.FileUtils;
 import com.apa.clipfarmer.utils.YoutubeUtils;
 import com.beust.jcommander.JCommander;
+import java.nio.file.Paths;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -100,16 +102,16 @@ public class ClipFarmerService {
         // Upload video
         String youtubeDescription = youtubeUtils.createVideoDescription(twitchStreamer.getName());
         String yotubeTitle = youtubeUtils.createVideoTitle(twitchStreamer.getName(), fileName, true);
-//        youtubeUploaderLogic.uploadHighlightVideo(yotubeTitle, youtubeDescription, pathVideoCreated, twitchStreamer.getName());
+        youtubeUploaderLogic.uploadHighlightVideo(yotubeTitle, youtubeDescription, pathVideoCreated, twitchStreamer.getName());
 
         // Send email notification
         long elapsedTime = (System.currentTimeMillis() - startTime) / 1000;
         log.info("Batch execution took {} seconds", elapsedTime);
-//        emailNotificationLogic.sendEmail("Execution finalized", twitchStreamer.getName(), elapsedTime);
+        emailNotificationLogic.sendEmail("Execution finalized", twitchStreamer.getName(), elapsedTime);
 
         // Clean up
-//        FileUtils.deleteDirectory(Paths.get("build/output"));
-//        FileUtils.deleteDirectory(Paths.get("build/downloads"));
+        FileUtils.deleteDirectory(Paths.get("build/output"));
+        FileUtils.deleteDirectory(Paths.get("build/downloads"));
     }
 
     /**
