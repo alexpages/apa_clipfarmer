@@ -1,9 +1,7 @@
 package com.apa.clipfarmer.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-
 import java.time.LocalDateTime;
+import lombok.Data;
 
 /**
  * Class that represents the TwitchClip model
