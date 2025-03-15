@@ -36,7 +36,9 @@ public class TwitchClipDownloader {
     /**
      * Downloads a Twitch clip using the provided URL and OAuth token.
      *
-     * @param clipUrl the URL of the Twitch clip
+     * @param clipUrl the URL of the Twitch clip.
+     * @param twitchClip the Twitch clip to be downloaded.
+     * @param twitchStreamer the streamer of the Twitch Clip.
      */
     public void downloadFile(String clipUrl, TwitchClip twitchClip, TwitchStreamerNameEnum twitchStreamer) {
         log.info("Starting download for clip: {}", clipUrl);
@@ -66,8 +68,8 @@ public class TwitchClipDownloader {
     /**
      * Extracts the clip slug from the given clip URL.
      *
-     * @param clipUrl the URL of the clip
-     * @return the extracted clip slug
+     * @param clipUrl the URL of the clip.
+     * @return the extracted clip slug.
      */
     private String extractClipSlug(String clipUrl) {
         int lastSlashIndex = clipUrl.lastIndexOf("/");
@@ -77,8 +79,8 @@ public class TwitchClipDownloader {
     /**
      * Retrieves the video URL for the given clip slug.
      *
-     * @param clipSlug the slug of the clip
-     * @return an Optional containing the video URL if found, or empty if not
+     * @param clipSlug the slug of the clip.
+     * @return an Optional containing the video URL if found, or empty if not.
      */
     private Optional<String> getClipVideoUrl(String clipSlug) {
         try {
@@ -108,8 +110,8 @@ public class TwitchClipDownloader {
     /**
      * Creates a JSON query for fetching clip data.
      *
-     * @param clipSlug the slug of the clip
-     * @return the JSON query string
+     * @param clipSlug the slug of the clip.
+     * @return the JSON query string.
      */
     private String createJsonQuery(String clipSlug) {
         return String.format("""
@@ -130,8 +132,8 @@ public class TwitchClipDownloader {
     /**
      * Creates an HTTP POST connection to the Twitch API.
      *
-     * @return the HttpURLConnection
-     * @throws IOException if an I/O error occurs
+     * @return the HttpURLConnection.
+     * @throws IOException if an I/O error occurs.
      */
     private HttpURLConnection createPostConnection() throws IOException {
         URL url = new URL(TWITCH_GQL_URL);
@@ -148,9 +150,9 @@ public class TwitchClipDownloader {
     /**
      * Reads the response from the given HttpURLConnection.
      *
-     * @param conn the HttpURLConnection
-     * @return the response as a string
-     * @throws IOException if an I/O error occurs
+     * @param conn the HttpURLConnection.
+     * @return the response as a string.
+     * @throws IOException if an I/O error occurs.
      */
     private String readResponse(HttpURLConnection conn) throws IOException {
         try (BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8))) {
@@ -166,8 +168,8 @@ public class TwitchClipDownloader {
     /**
      * Extracts the video URL from the API response.
      *
-     * @param response the API response as a string
-     * @return an Optional containing the video URL if found, or empty if not
+     * @param response the API response as a string.
+     * @return an Optional containing the video URL if found, or empty if not.
      */
     private Optional<String> extractVideoUrl(String response) {
         try {
@@ -182,8 +184,8 @@ public class TwitchClipDownloader {
     /**
      * Parses the clip data from the JSON response.
      *
-     * @param response the JSON response
-     * @return an Optional containing the video URL if found, or empty if not
+     * @param response the JSON response.
+     * @return an Optional containing the video URL if found, or empty if not.
      */
     private Optional<String> parseClipData(JSONObject response) {
         try {
@@ -210,8 +212,9 @@ public class TwitchClipDownloader {
     /**
      * Downloads the video from the given URL to the specified output file.
      *
-     * @param videoUrl      the URL of the video to download
-     * @param outputFileName the name of the output file
+     * @param videoUrl      the URL of the video to download.
+     * @param outputFileName the name of the output file.
+     * @param folder the folder to where download.
      */
     private void downloadVideo(String videoUrl, String outputFileName, String folder) {
         try {

@@ -104,7 +104,7 @@ public class VideoLogic {
                         clipDuration - TRANSITION_DURATION,
                         TRANSITION_DURATION));
                 command.add("-af");
-                command.add(String.format(Locale.US,"afade=t=in:st=0:d=%f,afade=t=out:st=%f:d=%f",
+                command.add(String.format(Locale.US, "afade=t=in:st=0:d=%f,afade=t=out:st=%f:d=%f",
                         TRANSITION_DURATION,
                         clipDuration - TRANSITION_DURATION,
                         TRANSITION_DURATION));
@@ -170,7 +170,8 @@ public class VideoLogic {
     }
 
     /**
-     * Executes an FFmpeg command using array of arguments to handle paths with spaces correctly.
+     * Executes an FFmpeg command.
+     * @param command The command to be executed as array of arguments.
      */
     private void executeFFmpegCommand(String[] command) throws IOException, InterruptedException {
         log.debug("Executing FFmpeg command: {}", Arrays.toString(command));
@@ -208,6 +209,8 @@ public class VideoLogic {
 
     /**
      * Creates a temporary text file listing the input video paths for FFmpeg.
+     * @param videoPaths A list of the paths of the video files.
+     * @return The file created after concatenation.
      */
     private File createConcatFile(List<String> videoPaths) {
         File tempFile = new File(System.getProperty("user.dir"), OUTPUT_FOLDER + "input.txt");
