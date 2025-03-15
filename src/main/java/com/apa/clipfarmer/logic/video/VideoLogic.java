@@ -28,7 +28,7 @@ import java.util.List;
 public class VideoLogic {
 
     private static final String OUTPUT_FOLDER = "build/output/";
-    private static final double TRANSITION_DURATION = 0.20; // Transition duration in seconds
+    private static final double TRANSITION_DURATION = 0.25; // Transition duration in seconds
 
     /**
      * Concatenates multiple video files into a single output file with smooth transitions.
