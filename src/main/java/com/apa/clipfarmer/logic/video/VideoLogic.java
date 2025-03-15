@@ -1,5 +1,7 @@
 package com.apa.clipfarmer.logic.video;
 
+import java.util.Locale;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,35 +27,31 @@ import java.util.List;
 public class VideoLogic {
 
     private static final String OUTPUT_FOLDER = "build/output/";
-    private static final int TRANSITION_DURATION = 1; // Transition duration in seconds
+    private static final double TRANSITION_DURATION = 0.15; // Transition duration in seconds
 
     /**
      * Concatenates multiple video files into a single output file with smooth transitions.
      *
-     * @param videoPaths      List of file paths of the videos to concatenate.
-     * @param outputFileName  Name of the output file.
-     * @param lClipDuration   List of durations for each clip in seconds.
+     * @param clipDurationsMap   Map of video file paths and their respective durations.
+     * @param outputFileName     Name of the output file.
      * @return The path to the output file, or null if concatenation failed.
      */
-    public String concatenateVideos(List<String> videoPaths, String outputFileName, List<Integer> lClipDuration) {
+    public String concatenateVideos(Map<String, Double> clipDurationsMap, String outputFileName) {
         long startTime = System.currentTimeMillis();
+
+        log.info("This is the map of videos and durations to process: {}", clipDurationsMap.toString());
 
         // Ensure output directory exists
         File outputDir = new File(OUTPUT_FOLDER);
         outputDir.mkdirs();
 
-        if (videoPaths == null || videoPaths.isEmpty()) {
+        if (clipDurationsMap == null || clipDurationsMap.isEmpty()) {
             log.error("No video files provided for concatenation.");
             return null;
         }
 
-        if (lClipDuration == null || lClipDuration.size() != videoPaths.size()) {
-            log.error("Clip durations list is invalid or doesn't match the number of video files.");
-            return null;
-        }
-
         // Verify all input files exist before starting
-        for (String path : videoPaths) {
+        for (String path : clipDurationsMap.keySet()) {
             File file = new File(path);
             if (!file.exists() || !file.isFile()) {
                 log.error("Input file does not exist or is not accessible: {}", path);
@@ -83,8 +81,11 @@ public class VideoLogic {
             List<String> processedClips = new ArrayList<>();
 
             // Process each clip with fade in/out for both video and audio
-            for (int i = 0; i < videoPaths.size(); i++) {
-                String inputFile = videoPaths.get(i);
+            int i = 0;
+            for (Map.Entry<String, Double> entry : clipDurationsMap.entrySet()) {
+                String inputFile = entry.getKey();
+                double clipDuration = entry.getValue();
+
                 File processedFile = new File(tempDir, "clip_" + i + ".mp4");
                 String processedFilePath = processedFile.getAbsolutePath();
                 processedClips.add(processedFilePath);
@@ -96,36 +97,17 @@ public class VideoLogic {
                 command.add("-i");
                 command.add(inputFile);
 
-                // First clip gets only fade out
-                if (i == 0) {
-                    command.add("-vf");
-                    command.add(String.format("fade=t=out:st=%d:d=%d",
-                            lClipDuration.get(i) - TRANSITION_DURATION, TRANSITION_DURATION));
-                    command.add("-af");
-                    command.add(String.format("afade=t=out:st=%d:d=%d",
-                            lClipDuration.get(i) - TRANSITION_DURATION, TRANSITION_DURATION));
-                }
-                // Last clip gets only fade in
-                else if (i == videoPaths.size() - 1) {
-                    command.add("-vf");
-                    command.add(String.format("fade=t=in:st=0:d=%d", TRANSITION_DURATION));
-                    command.add("-af");
-                    command.add(String.format("afade=t=in:st=0:d=%d", TRANSITION_DURATION));
-                }
-                // Middle clips get both fade in and fade out
-                else {
-                    command.add("-vf");
-                    command.add(String.format("fade=t=in:st=0:d=%d,fade=t=out:st=%d:d=%d",
-                            TRANSITION_DURATION,
-                            lClipDuration.get(i) - TRANSITION_DURATION,
-                            TRANSITION_DURATION));
-                    command.add("-af");
-                    command.add(String.format("afade=t=in:st=0:d=%d,afade=t=out:st=%d:d=%d",
-                            TRANSITION_DURATION,
-                            lClipDuration.get(i) - TRANSITION_DURATION,
-                            TRANSITION_DURATION));
-                }
-
+                // Fade in and fade out for all clips, using clip's duration
+                command.add("-vf");
+                command.add(String.format(Locale.US, "fade=t=in:st=0:d=%f,fade=t=out:st=%f:d=%f",
+                        TRANSITION_DURATION,
+                        clipDuration - TRANSITION_DURATION,
+                        TRANSITION_DURATION));
+                command.add("-af");
+                command.add(String.format(Locale.US,"afade=t=in:st=0:d=%f,afade=t=out:st=%f:d=%f",
+                        TRANSITION_DURATION,
+                        clipDuration - TRANSITION_DURATION,
+                        TRANSITION_DURATION));
                 command.add("-y"); // Overwrite output files without asking
                 command.add(processedFilePath);
 
@@ -136,6 +118,7 @@ public class VideoLogic {
                     log.error("Failed to create processed clip: {}", processedFilePath);
                     return null;
                 }
+                i++;
             }
 
             // Create a temporary file to store concatenation input
@@ -144,10 +127,7 @@ public class VideoLogic {
                 log.error("Failed to create concat input file.");
                 return null;
             }
-
             log.debug("Created concat file at: {} with content for {} files", tempFile.getAbsolutePath(), processedClips.size());
-
-            // Concatenate processed clips
             log.info("Concatenating processed clips...");
             String[] concatCommand = {
                     "ffmpeg",
@@ -241,28 +221,5 @@ public class VideoLogic {
             return null;
         }
         return tempFile;
-    }
-
-    /**
-     * Retrieves the file paths of all video files in the given directory.
-     *
-     * @param directoryPath The path to the directory containing video files.
-     * @return A list of file paths for the video files.
-     */
-    public static List<String> getVideoPaths(String directoryPath) {
-        List<String> videoPaths = new ArrayList<>();
-        File directory = new File(directoryPath);
-
-        if (directory.exists() && directory.isDirectory()) {
-            File[] files = directory.listFiles((dir, name) -> name.endsWith(".mp4") || name.endsWith(".mov") || name.endsWith(".avi"));
-            if (files != null) {
-                for (File file : files) {
-                    videoPaths.add(file.getAbsolutePath());
-                }
-            }
-        } else {
-            System.err.println("Directory does not exist or is not a directory: " + directoryPath);
-        }
-        return videoPaths;
     }
 }
