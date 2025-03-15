@@ -62,7 +62,9 @@ public class ClipFarmerService {
 
         // Get streamer name
         ClipFarmerArgs clipFarmerArgs = parseArguments(args);
-        if (clipFarmerArgs == null) return;
+        if (clipFarmerArgs == null) {
+            return;
+        }
         TwitchStreamerNameEnum twitchStreamer = clipFarmerArgs.getTwitchStreamerNameEnum();
         if (TwitchStreamerNameEnum.INVALID.equals(twitchStreamer)) {
             log.warn("Twitch streamer is not present in list or was null");
@@ -71,7 +73,9 @@ public class ClipFarmerService {
 
         // Get clips and download them
         String twitchOAuthToken = retrieveTwitchOAuthToken();
-        if (twitchOAuthToken == null) return;
+        if (twitchOAuthToken == null) {
+            return;
+        }
 
         Map<String, Double> clipDurationsMap = new LinkedHashMap<>();
         try (SqlSession session = sqlSessionFactory.openSession()) {
@@ -103,7 +107,6 @@ public class ClipFarmerService {
         String youtubeDescription = youtubeUtils.createVideoDescription(twitchStreamer.getName());
         String yotubeTitle = youtubeUtils.createVideoTitle(twitchStreamer.getName(), fileName, true);
         youtubeUploaderLogic.uploadHighlightVideo(yotubeTitle, youtubeDescription, pathVideoCreated, twitchStreamer.getName());
-
         // Send email notification
         long elapsedTime = (System.currentTimeMillis() - startTime) / 1000;
         log.info("Batch execution took {} seconds", elapsedTime);
@@ -153,6 +156,8 @@ public class ClipFarmerService {
      * @param twitchClip The clip to process.
      * @param mapper     The TwitchClipMapper instance.
      * @param session    The SQL session.
+     * @param twitchStreamer The twitch streamer enum.
+     * @return The duration of the processed clip in seconds.
      */
     private double processClip(TwitchClip twitchClip, TwitchClipMapper mapper, SqlSession session, TwitchStreamerNameEnum twitchStreamer) {
         try {

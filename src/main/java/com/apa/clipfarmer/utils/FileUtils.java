@@ -18,6 +18,10 @@ import lombok.extern.slf4j.Slf4j;
 @UtilityClass
 public class FileUtils {
 
+    /**
+     * Deletes a directory
+     * @param path The path of the directory to be deleted
+     */
     public static void deleteDirectory(Path path) {
 
         try {

@@ -48,9 +48,12 @@ public class YoutubeUploaderLogic {
     private static final String VIDEO_FILE_FORMAT = "video/*";
 
     /**
-     * Upload the user-selected video to the user's YouTube channel. The code
-     * looks for the video in the application's project folder and uses OAuth
-     * 2.0 to authorize the API request.
+     * Uploads a video to the user's YouTube channel using OAuth 2.0 for authorization.
+     *
+     * @param youtubeTitle The title of the video.
+     * @param youtubeDescription The description of the video.
+     * @param pathFileToUpload The path of the video file to upload.
+     * @param broadcasterId The broadcaster's ID.
      */
     public void uploadHighlightVideo(String youtubeTitle, String youtubeDescription, String pathFileToUpload, String broadcasterId) {
         log.info("Youtube Title for the next upload: {}", youtubeTitle);

@@ -32,6 +32,7 @@ public class YoutubeUtils {
      *
      * @param broadcasterId The ID of the Twitch broadcaster.
      * @param title The title.
+     * @param isHighlight Indicates if this video title is for a Highlight video or not.
      * @return A formatted YouTube video title.
      * @throws IllegalStateException If the broadcaster cannot be found or an error occurs.
      */
