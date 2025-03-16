@@ -49,7 +49,7 @@ public class YoutubeUtils {
                 TwitchHighlightMapper twitchHighlightMapper = session.getMapper(TwitchHighlightMapper.class);
                 Integer lastId = twitchHighlightMapper.getLastHighlightIdByCreatorName(broadcasterId);
                 lastId = (lastId == null) ? 1 : lastId + 1;
-                String month = LocalDateTime.now().getMonth().getDisplayName(TextStyle.SHORT, Locale.ENGLISH).toUpperCase();
+                String month = LocalDateTime.now().getMonth().getDisplayName(TextStyle.FULL, Locale.ENGLISH).toUpperCase();
                 return String.format("%s HIGHLIGHTS TWITCH %s #%s",
                         twitchStreamer.getTwitchStreamerName().toUpperCase(),
                         month,

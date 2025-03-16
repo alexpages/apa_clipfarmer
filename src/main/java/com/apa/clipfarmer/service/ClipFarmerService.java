@@ -95,11 +95,9 @@ public class ClipFarmerService {
             log.error("Unexpected error during execution", e);
         }
 
-        // Create summary videos after previous download
+        // Process videos
         String fileName = MERGED_VIDEO_FILENAME;
         String outputFileName = OUTPUT_DIRECTORY + twitchStreamer.getName() + fileName;
-
-        // Process videos
         String pathVideoCreated = videoLogic.concatenateVideos(clipDurationsMap.keySet().stream().toList(), outputFileName);
         log.info("pathVideoCreated is: {}", pathVideoCreated);
 
@@ -107,6 +105,7 @@ public class ClipFarmerService {
         String youtubeDescription = youtubeUtils.createVideoDescription(twitchStreamer.getName());
         String yotubeTitle = youtubeUtils.createVideoTitle(twitchStreamer.getName(), fileName, true);
         youtubeUploaderLogic.uploadHighlightVideo(yotubeTitle, youtubeDescription, pathVideoCreated, twitchStreamer.getName());
+
         // Send email notification
         long elapsedTime = (System.currentTimeMillis() - startTime) / 1000;
         log.info("Batch execution took {} seconds", elapsedTime);

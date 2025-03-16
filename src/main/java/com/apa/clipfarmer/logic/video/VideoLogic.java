@@ -46,7 +46,7 @@ public class VideoLogic {
         File outputDir = new File(OUTPUT_FOLDER);
         outputDir.mkdirs();
 
-        if (clipPaths == null || clipPaths.isEmpty()) {
+        if (clipPaths.isEmpty()) {
             log.error("No video files provided for concatenation.");
             return null;
         }
