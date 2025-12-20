@@ -26,7 +26,7 @@ public class ClipFarmerApplication implements CommandLineRunner {
      * @param args command-line arguments passed to the application
      */
     public static void main(String[] args) {
-        String[] hardcodedArgs = {"streamerName=mizkif"};
+        String[] hardcodedArgs = {"streamerName=jasontheween"};
         SpringApplication.run(ClipFarmerApplication.class, hardcodedArgs); //TODO change for args
     }
 
