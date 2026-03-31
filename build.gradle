@@ -48,6 +48,8 @@ dependencies {
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: '3.4.2'
+    testImplementation 'org.testcontainers:junit-jupiter:1.20.4'
+    testImplementation 'org.testcontainers:mysql:1.20.4'
 
     // DB
     implementation group: 'mysql', name: 'mysql-connector-java', version: '8.0.33'
@@ -68,5 +70,7 @@ dependencies {
 }
 
 test {
-    useJUnitPlatform()
+    useJUnitPlatform {
+        excludeTags 'integration'
+    }
 }
