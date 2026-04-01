@@ -7,6 +7,7 @@ import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.web.client.RestTemplate;
 
 /**
  * Class to configure MyBatis, scan mappers and set up the SqlSessionFactory.
@@ -33,5 +34,10 @@ public class MyBatisConfig {
                         .getResources("classpath:mybatis/mapper/*.xml")
         );
         return factoryBean.getObject();
+    }
+
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
     }
 }

@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+
 /**
  * Fetches and processes the most viewed Twitch clips for a specific streamer.
  * Handles API calls and sorting logic.
@@ -38,6 +39,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 public class TwitchClipFetcherLogic {
 
     private final TwitchUserLogic twitchUserLogic;
+    private final RestTemplate restTemplate;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
      * Fetches the top clips for the given streamer and sorts them by view count.
@@ -63,7 +66,6 @@ public class TwitchClipFetcherLogic {
         headers.set("Client-Id", TwitchConstants.TWITCH_CLIENT_ID);
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
-        RestTemplate restTemplate = new RestTemplate();
         List<TwitchClip> allClips = new ArrayList<>();
         String afterCursor = null;
 
@@ -75,8 +77,7 @@ public class TwitchClipFetcherLogic {
                 List<TwitchClip> clips = convertResponseBodyToTwitchClips(response, clipDuration, minimumViews);
                 allClips.addAll(clips);
                 log.info("All clips retrieved: {}", allClips);
-//                afterCursor = null;
-                afterCursor = extractAfterCursor(response); //TODO change back
+                afterCursor = extractAfterCursor(response);
             } while (afterCursor != null);
         } catch (Exception e) {
             log.error("Error fetching clips for streamer {}: {}", streamerName, e.getMessage(), e);
@@ -92,9 +93,8 @@ public class TwitchClipFetcherLogic {
      * @param response The response body from the Twitch API.
      * @return The cursor string for the next page, or null if there is no next page.
      */
-    private static String extractAfterCursor(ResponseEntity<String> response) {
+    private String extractAfterCursor(ResponseEntity<String> response) {
         try {
-            ObjectMapper objectMapper = new ObjectMapper();
             JsonNode jsonNode = objectMapper.readTree(response.getBody());
             if (jsonNode.has("pagination") && jsonNode.get("pagination").has("cursor")) {
                 return jsonNode.get("pagination").get("cursor").asText();
@@ -113,24 +113,22 @@ public class TwitchClipFetcherLogic {
      * @param minimumViews The minimum of views as a filter.
      * @return A list of sorted TwitchClip objects.
      */
-    private static List<TwitchClip> convertResponseBodyToTwitchClips(ResponseEntity<String> responseBody, int clipDuration, int minimumViews) {
-        List<TwitchClip> twitchClips = new ArrayList<>();
+    private List<TwitchClip> convertResponseBodyToTwitchClips(ResponseEntity<String> responseBody, int clipDuration, int minimumViews) {
         if (!responseBody.hasBody()) {
-            return twitchClips;
+            return List.of();
         }
         try {
-            ObjectMapper objectMapper = new ObjectMapper();
             JsonNode jsonNode = objectMapper.readTree(responseBody.getBody());
             if (!jsonNode.has("data") || !jsonNode.get("data").isArray()) {
                 log.warn("No clip data found.");
-                return twitchClips;
+                return List.of();
             }
             ArrayNode clipsArray = (ArrayNode) jsonNode.get("data");
 
-            twitchClips = StreamSupport.stream(clipsArray.spliterator(), false)
+            return StreamSupport.stream(clipsArray.spliterator(), false)
                     .map(clipNode -> {
-                        String createdAtString = clipNode.get("created_at").asText();
-                        LocalDateTime createdAt = LocalDateTime.parse(createdAtString, DateTimeFormatter.ISO_DATE_TIME);
+                        LocalDateTime createdAt = LocalDateTime.parse(
+                                clipNode.get("created_at").asText(), DateTimeFormatter.ISO_DATE_TIME);
                         return new TwitchClip(
                                 null,
                                 clipNode.get("id").asText(),
@@ -146,11 +144,11 @@ public class TwitchClipFetcherLogic {
                     })
                     .filter(clip -> clip.getDuration() >= clipDuration)
                     .filter(clip -> clip.getViewCount() >= minimumViews)
-                    .sorted(Comparator.comparingInt(TwitchClip::getViewCount).reversed())   // Sort by viewCount (desc)
+                    .sorted(Comparator.comparingInt(TwitchClip::getViewCount).reversed())
                     .collect(Collectors.toList());
         } catch (IOException e) {
             log.error("Error parsing response body: {}", e.getMessage(), e);
+            return List.of();
         }
-        return twitchClips;
     }
 }

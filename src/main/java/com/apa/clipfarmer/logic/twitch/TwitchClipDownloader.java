@@ -31,6 +31,8 @@ import static com.apa.clipfarmer.model.TwitchConstants.TWITCH_GRAPHQL_CLIENT_ID;
 @Service
 public class TwitchClipDownloader {
 
+    private final TwitchAuthLogic twitchAuthLogic;
+
     private static final String OUTPUT_FOLDER = "build/downloads/";
 
     /**
@@ -140,7 +142,7 @@ public class TwitchClipDownloader {
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("POST");
         conn.setRequestProperty("Client-ID", TWITCH_GRAPHQL_CLIENT_ID);
-        conn.setRequestProperty("Authorization", "Bearer " + TwitchAuthLogic.getOAuthToken());
+        conn.setRequestProperty("Authorization", "Bearer " + twitchAuthLogic.getOAuthToken());
         conn.setRequestProperty("Content-Type", "application/json");
         conn.setRequestProperty("Accept", "application/json");
         conn.setDoOutput(true);
