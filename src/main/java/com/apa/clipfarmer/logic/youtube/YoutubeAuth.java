@@ -22,7 +22,7 @@ import org.springframework.stereotype.Service;
 /**
  * Shared class used by every sample. Contains methods for authorizing a user and caching credentials.
  *
- * @auth alexpages
+ * @author alexpages
  */
 @Service
 public class YoutubeAuth {
@@ -37,7 +37,8 @@ public class YoutubeAuth {
      * Authorizes the installed application to access user's protected data.
      *
      * @param scopes              list of scopes needed to run youtube upload.
-     * @param credentialDatastore name of the credential datastore to cache OAuth tokens
+     * @param credentialDatastore name of the credential datastore to cache OAuth tokens.
+     * @return The related credentials.
      */
     public static Credential authorize(List<String> scopes, String credentialDatastore) throws IOException {
 

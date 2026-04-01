@@ -19,6 +19,7 @@ public enum TwitchStreamerNameEnum {
     EDWARDKSO("edwardkso", "en"),
     VALKYRAE("valkyrae", "en"),
     XCHOCOBARS("xchocobars", "en"),
+    MIZKIF("mizkif", "en"),
     INVALID("", "");
 
     private final String name;

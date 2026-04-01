@@ -2,6 +2,7 @@ package com.apa.clipfarmer.logic.video;
 
 import java.util.Locale;
 import java.util.Map;
+import java.util.HashMap;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,31 +28,31 @@ import java.util.List;
 public class VideoLogic {
 
     private static final String OUTPUT_FOLDER = "build/output/";
-    private static final double TRANSITION_DURATION = 0.15; // Transition duration in seconds
+    private static final double TRANSITION_DURATION = 0.25; // Transition duration in seconds
 
     /**
      * Concatenates multiple video files into a single output file with smooth transitions.
      *
-     * @param clipDurationsMap   Map of video file paths and their respective durations.
-     * @param outputFileName     Name of the output file.
+     * @param clipPaths        List of video file paths to concatenate.
+     * @param outputFileName   Name of the output file.
      * @return The path to the output file, or null if concatenation failed.
      */
-    public String concatenateVideos(Map<String, Double> clipDurationsMap, String outputFileName) {
+    public String concatenateVideos(List<String> clipPaths, String outputFileName) {
         long startTime = System.currentTimeMillis();
 
-        log.info("This is the map of videos and durations to process: {}", clipDurationsMap.toString());
+        log.info("Processing {} videos for concatenation", clipPaths.size());
 
         // Ensure output directory exists
         File outputDir = new File(OUTPUT_FOLDER);
         outputDir.mkdirs();
 
-        if (clipDurationsMap == null || clipDurationsMap.isEmpty()) {
+        if (clipPaths.isEmpty()) {
             log.error("No video files provided for concatenation.");
             return null;
         }
 
         // Verify all input files exist before starting
-        for (String path : clipDurationsMap.keySet()) {
+        for (String path : clipPaths) {
             File file = new File(path);
             if (!file.exists() || !file.isFile()) {
                 log.error("Input file does not exist or is not accessible: {}", path);
@@ -59,6 +60,18 @@ public class VideoLogic {
             }
         }
 
+        // Calculate durations for all clips using FFprobe
+        Map<String, Double> clipDurationsMap = new HashMap<>();
+        for (String clipPath : clipPaths) {
+            Double duration = getVideoDuration(clipPath);
+            if (duration == null || duration <= 0) {
+                log.error("Failed to get valid duration for clip: {}", clipPath);
+                return null;
+            }
+            clipDurationsMap.put(clipPath, duration);
+        }
+
+        log.info("Calculated durations for all clips: {}", clipDurationsMap);
         log.info("Starting video concatenation with synchronized audio/video transitions: {}", outputFileName);
 
         // Create absolute path for output file if it's a relative path
@@ -90,7 +103,7 @@ public class VideoLogic {
                 String processedFilePath = processedFile.getAbsolutePath();
                 processedClips.add(processedFilePath);
 
-                log.debug("Processing clip {}: {} -> {}", i, inputFile, processedFilePath);
+                log.debug("Processing clip {}: {} -> {} (duration: {} seconds)", i, inputFile, processedFilePath, clipDuration);
 
                 List<String> command = new ArrayList<>();
                 command.add("ffmpeg");
@@ -104,7 +117,7 @@ public class VideoLogic {
                         clipDuration - TRANSITION_DURATION,
                         TRANSITION_DURATION));
                 command.add("-af");
-                command.add(String.format(Locale.US,"afade=t=in:st=0:d=%f,afade=t=out:st=%f:d=%f",
+                command.add(String.format(Locale.US, "afade=t=in:st=0:d=%f,afade=t=out:st=%f:d=%f",
                         TRANSITION_DURATION,
                         clipDuration - TRANSITION_DURATION,
                         TRANSITION_DURATION));
@@ -170,7 +183,56 @@ public class VideoLogic {
     }
 
     /**
-     * Executes an FFmpeg command using array of arguments to handle paths with spaces correctly.
+     * Get the duration of a video file using FFprobe.
+     *
+     * @param videoFilePath Path to the video file
+     * @return Duration in seconds, or null if the duration couldn't be determined
+     */
+    private Double getVideoDuration(String videoFilePath) {
+        try {
+            log.debug("Getting duration for video: {}", videoFilePath);
+            String[] command = {
+                    "ffprobe",
+                    "-v", "error",
+                    "-show_entries", "format=duration",
+                    "-of", "default=noprint_wrappers=1:nokey=1",
+                    videoFilePath
+            };
+
+            ProcessBuilder processBuilder = new ProcessBuilder(command);
+            Process process = processBuilder.start();
+
+            StringBuilder output = new StringBuilder();
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    output.append(line);
+                }
+            }
+
+            int exitCode = process.waitFor();
+            if (exitCode != 0) {
+                log.error("FFprobe command failed with exit code: {}", exitCode);
+                return null;
+            }
+
+            try {
+                double duration = Double.parseDouble(output.toString().trim());
+                log.debug("Video duration: {} seconds", duration);
+                return duration;
+            } catch (NumberFormatException e) {
+                log.error("Failed to parse video duration: {}", output.toString(), e);
+                return null;
+            }
+        } catch (IOException | InterruptedException e) {
+            log.error("Error executing FFprobe command", e);
+            return null;
+        }
+    }
+
+    /**
+     * Executes an FFmpeg command.
+     * @param command The command to be executed as array of arguments.
      */
     private void executeFFmpegCommand(String[] command) throws IOException, InterruptedException {
         log.debug("Executing FFmpeg command: {}", Arrays.toString(command));
@@ -208,6 +270,8 @@ public class VideoLogic {
 
     /**
      * Creates a temporary text file listing the input video paths for FFmpeg.
+     * @param videoPaths A list of the paths of the video files.
+     * @return The file created after concatenation.
      */
     private File createConcatFile(List<String> videoPaths) {
         File tempFile = new File(System.getProperty("user.dir"), OUTPUT_FOLDER + "input.txt");

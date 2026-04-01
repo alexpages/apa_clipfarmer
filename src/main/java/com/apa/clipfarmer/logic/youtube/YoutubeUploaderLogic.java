@@ -48,9 +48,12 @@ public class YoutubeUploaderLogic {
     private static final String VIDEO_FILE_FORMAT = "video/*";
 
     /**
-     * Upload the user-selected video to the user's YouTube channel. The code
-     * looks for the video in the application's project folder and uses OAuth
-     * 2.0 to authorize the API request.
+     * Uploads a video to the user's YouTube channel using OAuth 2.0 for authorization.
+     *
+     * @param youtubeTitle The title of the video.
+     * @param youtubeDescription The description of the video.
+     * @param pathFileToUpload The path of the video file to upload.
+     * @param broadcasterId The broadcaster's ID.
      */
     public void uploadHighlightVideo(String youtubeTitle, String youtubeDescription, String pathFileToUpload, String broadcasterId) {
         log.info("Youtube Title for the next upload: {}", youtubeTitle);
@@ -122,15 +125,6 @@ public class YoutubeUploaderLogic {
 
             // Call the API and upload the video.
             returnedVideo = videoInsert.execute();
-
-            // Print data about the newly inserted video from the API response.
-            System.out.println("\n================== Returned Video ==================\n");
-            System.out.println("  - Id: " + returnedVideo.getId());
-            System.out.println("  - Title: " + returnedVideo.getSnippet().getTitle());
-            System.out.println("  - Tags: " + returnedVideo.getSnippet().getTags());
-            System.out.println("  - Privacy Status: " + returnedVideo.getStatus().getPrivacyStatus());
-            System.out.println("  - Video Count: " + returnedVideo.getStatistics().getViewCount());
-
         } catch (GoogleJsonResponseException e) {
             if (e.getDetails() != null) {
                 System.err.println("GoogleJsonResponseException code: " + e.getDetails().getCode() + " : "

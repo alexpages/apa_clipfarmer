@@ -44,6 +44,9 @@ public class TwitchClipFetcherLogic {
      *
      * @param streamerName The name of the streamer.
      * @param oAuthToken   The OAuth token for authentication.
+     * @param clipDuration The duration of the clip as a filter.
+     * @param minimumViews The minimum of views as a filter.
+     * @param daysAgo the range of time to be used as limit to fetch clips.
      * @return A list of sorted TwitchClip objects.
      */
     public List<TwitchClip> getTwitchClips(String streamerName, String oAuthToken, int clipDuration, int minimumViews, int daysAgo) {
@@ -51,7 +54,7 @@ public class TwitchClipFetcherLogic {
         String url = UriComponentsBuilder.fromHttpUrl(TwitchConstants.TWITCH_CLIP_API)
                 .queryParam("broadcaster_id", broadcasterId)
                 .queryParam("started_at", Instant.now().minus(daysAgo, ChronoUnit.DAYS))
-                .queryParam("first", 5)
+                .queryParam("first", 20)
                 .toUriString();
 
         HttpHeaders headers = new HttpHeaders();
@@ -72,8 +75,8 @@ public class TwitchClipFetcherLogic {
                 List<TwitchClip> clips = convertResponseBodyToTwitchClips(response, clipDuration, minimumViews);
                 allClips.addAll(clips);
                 log.info("All clips retrieved: {}", allClips);
-                afterCursor = null;
-//                afterCursor = extractAfterCursor(response); //TODO change back
+//                afterCursor = null;
+                afterCursor = extractAfterCursor(response); //TODO change back
             } while (afterCursor != null);
         } catch (Exception e) {
             log.error("Error fetching clips for streamer {}: {}", streamerName, e.getMessage(), e);
@@ -106,9 +109,11 @@ public class TwitchClipFetcherLogic {
      * Converts the response body from the Twitch API into a list of TwitchClip objects and sorts them by view count.
      *
      * @param responseBody The response body from the RestTemplate call.
+     * @param clipDuration The duration of the clip as a filter.
+     * @param minimumViews The minimum of views as a filter.
      * @return A list of sorted TwitchClip objects.
      */
-    private static List<TwitchClip> convertResponseBodyToTwitchClips(ResponseEntity<String> responseBody, int durationOfClip, int minimumViews) {
+    private static List<TwitchClip> convertResponseBodyToTwitchClips(ResponseEntity<String> responseBody, int clipDuration, int minimumViews) {
         List<TwitchClip> twitchClips = new ArrayList<>();
         if (!responseBody.hasBody()) {
             return twitchClips;
@@ -139,7 +144,7 @@ public class TwitchClipFetcherLogic {
                                 clipNode.get("language").asText()
                         );
                     })
-                    .filter(clip -> clip.getDuration() >= durationOfClip)
+                    .filter(clip -> clip.getDuration() >= clipDuration)
                     .filter(clip -> clip.getViewCount() >= minimumViews)
                     .sorted(Comparator.comparingInt(TwitchClip::getViewCount).reversed())   // Sort by viewCount (desc)
                     .collect(Collectors.toList());

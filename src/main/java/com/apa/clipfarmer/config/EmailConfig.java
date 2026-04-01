@@ -6,9 +6,19 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 
+/**
+ * Configures the JavaMailSender for sending emails via Gmail SMTP server.
+ *
+ * @author alexpages
+ */
 @Configuration
 public class EmailConfig {
 
+    /**
+     * Creates and configures a JavaMailSender bean for sending emails.
+     *
+     * @return Configured JavaMailSender instance.
+     */
     @Bean
     public JavaMailSender javaMailSender() {
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();

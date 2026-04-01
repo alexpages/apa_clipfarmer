@@ -13,6 +13,7 @@ import com.apa.clipfarmer.model.TwitchStreamerNameEnum;
 import com.apa.clipfarmer.utils.FileUtils;
 import com.apa.clipfarmer.utils.YoutubeUtils;
 import com.beust.jcommander.JCommander;
+import io.micrometer.common.util.StringUtils;
 import java.nio.file.Paths;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -59,10 +60,10 @@ public class ClipFarmerService {
      */
     public void execute(String[] args) {
         long startTime = System.currentTimeMillis();
-
-        // Get streamer name
         ClipFarmerArgs clipFarmerArgs = parseArguments(args);
-        if (clipFarmerArgs == null) return;
+        if (clipFarmerArgs == null) {
+            return;
+        }
         TwitchStreamerNameEnum twitchStreamer = clipFarmerArgs.getTwitchStreamerNameEnum();
         if (TwitchStreamerNameEnum.INVALID.equals(twitchStreamer)) {
             log.warn("Twitch streamer is not present in list or was null");
@@ -71,13 +72,19 @@ public class ClipFarmerService {
 
         // Get clips and download them
         String twitchOAuthToken = retrieveTwitchOAuthToken();
-        if (twitchOAuthToken == null) return;
-
         Map<String, Double> clipDurationsMap = new LinkedHashMap<>();
+
         try (SqlSession session = sqlSessionFactory.openSession()) {
             List<TwitchClip> twitchClips = twitchClipFetcherLogic.getTwitchClips(
-                    twitchStreamer.getName(), twitchOAuthToken, CLIP_DURATION, MIN_VIEWS, DAYS_AGO);
-            log.info("Total amount of clips retrieved for broadcasterId [{}] is: [{}]", twitchStreamer.getName(), twitchClips.size());
+                    twitchStreamer.getName(),
+                    twitchOAuthToken,
+                    CLIP_DURATION,
+                    MIN_VIEWS,
+                    DAYS_AGO);
+
+            log.info("Total amount of clips retrieved for broadcasterId [{}] is: [{}]",
+                    twitchStreamer.getName(),
+                    twitchClips.size());
             TwitchClipMapper mapper = session.getMapper(TwitchClipMapper.class);
 
             for (TwitchClip clip : twitchClips) {
@@ -91,25 +98,31 @@ public class ClipFarmerService {
             log.error("Unexpected error during execution", e);
         }
 
-        // Create summary videos after previous download
-        String fileName = MERGED_VIDEO_FILENAME;
-        String outputFileName = OUTPUT_DIRECTORY + twitchStreamer.getName() + fileName;
-
         // Process videos
-        String pathVideoCreated = videoLogic.concatenateVideos(clipDurationsMap, outputFileName);
+        String outputFileName = OUTPUT_DIRECTORY + twitchStreamer.getName() + MERGED_VIDEO_FILENAME;
+        String pathVideoCreated = videoLogic.concatenateVideos(clipDurationsMap.keySet().stream().toList(), outputFileName);
         log.info("pathVideoCreated is: {}", pathVideoCreated);
 
         // Upload video
         String youtubeDescription = youtubeUtils.createVideoDescription(twitchStreamer.getName());
-        String yotubeTitle = youtubeUtils.createVideoTitle(twitchStreamer.getName(), fileName, true);
-        youtubeUploaderLogic.uploadHighlightVideo(yotubeTitle, youtubeDescription, pathVideoCreated, twitchStreamer.getName());
+        String youtubeTitle = youtubeUtils.createVideoTitle(twitchStreamer.getName(), MERGED_VIDEO_FILENAME, true);
+        youtubeUploaderLogic.uploadHighlightVideo(youtubeTitle, youtubeDescription, pathVideoCreated, twitchStreamer.getName());
 
         // Send email notification
         long elapsedTime = (System.currentTimeMillis() - startTime) / 1000;
         log.info("Batch execution took {} seconds", elapsedTime);
-        emailNotificationLogic.sendEmail("Execution finalized", twitchStreamer.getName(), elapsedTime);
+        emailNotificationLogic.sendEmail(
+                "Execution finalized",
+                twitchStreamer.getName(),
+                elapsedTime);
 
-        // Clean up
+        cleanUpTemporaryFiles();
+    }
+
+    /**
+     * Deletes all temporary folders including the files within.
+     */
+    private void cleanUpTemporaryFiles() {
         FileUtils.deleteDirectory(Paths.get("build/output"));
         FileUtils.deleteDirectory(Paths.get("build/downloads"));
     }
@@ -140,6 +153,9 @@ public class ClipFarmerService {
         try {
             String token = TwitchAuthLogic.getOAuthToken();
             log.info("OAuth token has been retrieved: [{}]", token);
+            if (StringUtils.isEmpty(token)) {
+                throw new RuntimeException("Twitch token retrieved was null or empty.");
+            }
             return token;
         } catch (Exception e) {
             log.error("Failed to retrieve OAuth token", e);
@@ -153,6 +169,8 @@ public class ClipFarmerService {
      * @param twitchClip The clip to process.
      * @param mapper     The TwitchClipMapper instance.
      * @param session    The SQL session.
+     * @param twitchStreamer The twitch streamer enum.
+     * @return The duration of the processed clip in seconds.
      */
     private double processClip(TwitchClip twitchClip, TwitchClipMapper mapper, SqlSession session, TwitchStreamerNameEnum twitchStreamer) {
         try {
