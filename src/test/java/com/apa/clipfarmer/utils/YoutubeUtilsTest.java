@@ -3,8 +3,6 @@ package com.apa.clipfarmer.utils;
 import com.apa.clipfarmer.mapper.TwitchHighlightMapper;
 import com.apa.clipfarmer.mapper.TwitchStreamerMapper;
 import com.apa.clipfarmer.model.TwitchStreamer;
-import org.apache.ibatis.session.SqlSession;
-import org.apache.ibatis.session.SqlSessionFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,7 +12,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 /**
@@ -25,8 +22,6 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class YoutubeUtilsTest {
 
-    @Mock private SqlSessionFactory sqlSessionFactory;
-    @Mock private SqlSession sqlSession;
     @Mock private TwitchStreamerMapper streamerMapper;
     @Mock private TwitchHighlightMapper highlightMapper;
 
@@ -40,11 +35,6 @@ class YoutubeUtilsTest {
         streamer = new TwitchStreamer();
         streamer.setTwitchStreamerName("xqc");
         streamer.setBroadcasterId("broadcaster-xqc");
-
-        lenient().when(sqlSessionFactory.openSession()).thenReturn(sqlSession);
-        lenient().when(sqlSession.getMapper(TwitchStreamerMapper.class)).thenReturn(streamerMapper);
-        // lenient: not all tests use the highlight mapper
-        lenient().when(sqlSession.getMapper(TwitchHighlightMapper.class)).thenReturn(highlightMapper);
     }
 
     @Test

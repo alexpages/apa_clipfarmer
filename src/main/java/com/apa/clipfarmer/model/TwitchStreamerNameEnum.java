@@ -1,5 +1,6 @@
 package com.apa.clipfarmer.model;
 
+import java.util.Arrays;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -32,11 +33,9 @@ public enum TwitchStreamerNameEnum {
      * @return The TwitchStreamerNameEnum
      */
     public static TwitchStreamerNameEnum fromString(String streamerName) {
-        for (TwitchStreamerNameEnum twitchStreamerNameEnum : values()) {
-            if (twitchStreamerNameEnum.getName().equals(streamerName)) {
-                return twitchStreamerNameEnum;
-            }
-        }
-        return INVALID;
+        return Arrays.stream(values())
+                .filter(e -> e.getName().equals(streamerName))
+                .findFirst()
+                .orElse(INVALID);
     }
 }

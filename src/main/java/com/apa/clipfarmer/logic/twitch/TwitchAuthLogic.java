@@ -4,13 +4,14 @@ import com.apa.clipfarmer.model.TwitchConstants;
 import com.apa.clipfarmer.utils.HttpUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.util.Optional;
-import lombok.experimental.UtilityClass;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -21,10 +22,13 @@ import org.springframework.web.util.UriComponentsBuilder;
  * @author alexpages
  */
 @Slf4j
-@UtilityClass
+@Service
+@RequiredArgsConstructor
 public class TwitchAuthLogic {
 
     private static final String GRANT_TYPE = "client_credentials";
+
+    private final RestTemplate restTemplate;
 
     /**
      * Fetches the OAuth token from the Twitch API.
@@ -33,7 +37,7 @@ public class TwitchAuthLogic {
      * @throws IllegalStateException if credentials are missing
      * @throws RuntimeException if the API request fails
      */
-    public static String getOAuthToken() {
+    public String getOAuthToken() {
         validateTwitchCredentials();
 
         String url = UriComponentsBuilder.fromHttpUrl(TwitchConstants.TWITCH_OAUTH_API)
@@ -45,8 +49,6 @@ public class TwitchAuthLogic {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         HttpEntity<String> requestEntity = new HttpEntity<>(headers);
-
-        RestTemplate restTemplate = new RestTemplate();
 
         try {
             ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
@@ -75,7 +77,7 @@ public class TwitchAuthLogic {
      *
      * @throws IllegalStateException if credentials are missing
      */
-    private static void validateTwitchCredentials() {
+    private void validateTwitchCredentials() {
         if (TwitchConstants.TWITCH_CLIENT_ID == null || TwitchConstants.TWITCH_CLIENT_SECRET == null) {
             log.error("Environment variables TWITCH_CLIENT_ID or TWITCH_CLIENT_SECRET are not set.");
             throw new IllegalStateException("Missing Twitch credentials.");
