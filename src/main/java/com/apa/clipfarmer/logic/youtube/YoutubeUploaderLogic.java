@@ -78,7 +78,7 @@ public class YoutubeUploaderLogic {
                     credential).setApplicationName("clipfarmer")
                     .build();
 
-            System.out.println("Uploading: " + pathFileToUpload);
+            log.info("Uploading: {}", pathFileToUpload);
 
             // Add extra information to the video before uploading.
             Video videoObjectDefiningMetadata = getMetadata(youtubeTitle, youtubeDescription, broadcasterId);
@@ -103,20 +103,20 @@ public class YoutubeUploaderLogic {
                 public void progressChanged(MediaHttpUploader uploader) throws IOException {
                     switch (uploader.getUploadState()) {
                         case INITIATION_STARTED:
-                            System.out.println("Initiation Started");
+                            log.info("Initiation Started");
                             break;
                         case INITIATION_COMPLETE:
-                            System.out.println("Initiation Completed");
+                            log.info("Initiation Completed");
                             break;
                         case MEDIA_IN_PROGRESS:
-                            System.out.println("Upload in progress");
-                            System.out.println("Upload percentage: " + uploader.getProgress());
+                            log.info("Upload in progress");
+                            log.info("Upload percentage: {}", uploader.getProgress());
                             break;
                         case MEDIA_COMPLETE:
-                            System.out.println("Upload Completed!");
+                            log.info("Upload Completed!");
                             break;
                         case NOT_STARTED:
-                            System.out.println("Upload Not Started!");
+                            log.info("Upload Not Started!");
                             break;
                     }
                 }
@@ -127,15 +127,12 @@ public class YoutubeUploaderLogic {
             returnedVideo = videoInsert.execute();
         } catch (GoogleJsonResponseException e) {
             if (e.getDetails() != null) {
-                System.err.println("GoogleJsonResponseException code: " + e.getDetails().getCode() + " : "
-                        + e.getDetails().getMessage());
+                log.error("GoogleJsonResponseException code: {} : {}", e.getDetails().getCode(), e.getDetails().getMessage(), e);
             } else {
-                System.err.println("GoogleJsonResponseException occurred, but no details were provided.");
+                log.error("GoogleJsonResponseException occurred, but no details were provided.", e);
             }
-            e.printStackTrace();
         } catch (Exception e) {
-            System.err.println("Exception: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Exception during video upload: {}", e.getMessage(), e);
         }
         finally {
             if (returnedVideo != null) {

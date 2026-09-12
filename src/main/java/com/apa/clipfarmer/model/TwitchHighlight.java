@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 import lombok.Data;
 
 /**
- * Class that represents the TwitchClip model
+ * Class that represents the TwitchHighlight model
  *
  * @author alexpages
  */

@@ -19,7 +19,6 @@ public class LocalDateTimeTypeHandler extends BaseTypeHandler<LocalDateTime> {
     @Override
     public LocalDateTime getNullableResult(ResultSet rs, String columnName) throws SQLException {
         Timestamp timestamp = rs.getTimestamp(columnName);
-        System.out.println("Retrieved timestamp from DB: " + timestamp); // Add this line
         return timestamp != null ? timestamp.toLocalDateTime() : null;
     }
 

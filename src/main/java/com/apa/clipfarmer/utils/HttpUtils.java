@@ -20,7 +20,7 @@ public class HttpUtils {
         try {
             return objectMapper.readTree(jsonResponse);
         } catch (Exception e) {
-            System.err.println("Error parsing JSON response: " + e.getMessage());
+            log.error("Error parsing JSON response: {}", e.getMessage(), e);
             throw new RuntimeException("Failed to parse JSON response.", e);
         }
     }

@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 /**
@@ -24,6 +25,7 @@ import org.springframework.stereotype.Service;
  *
  * @author alexpages
  */
+@Slf4j
 @Service
 public class YoutubeAuth {
 
@@ -49,7 +51,7 @@ public class YoutubeAuth {
         // Checks that the defaults have been replaced (Default = "Enter X here").
         if (clientSecrets.getDetails().getClientId().startsWith("Enter")
                 || clientSecrets.getDetails().getClientSecret().startsWith("Enter ")) {
-            System.out.println(
+            log.error(
                     "Enter Client ID and Secret from https://console.developers.google.com/project/_/apiui/credential "
                             + "into src/main/resources/client_secrets.json");
             System.exit(1);
