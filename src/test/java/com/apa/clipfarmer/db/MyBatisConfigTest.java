@@ -1,26 +1,27 @@
 package com.apa.clipfarmer.db;
 
-import java.io.InputStream;
-import org.apache.ibatis.session.SqlSessionFactory;
-import org.apache.ibatis.session.SqlSessionFactoryBuilder;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
-@ExtendWith(MockitoExtension.class)
+import com.apa.clipfarmer.mapper.TwitchClipMapper;
+import com.apa.clipfarmer.mapper.TwitchHighlightMapper;
+import com.apa.clipfarmer.mapper.TwitchStreamerMapper;
+import javax.sql.DataSource;
+import org.apache.ibatis.session.SqlSessionFactory;
+import org.junit.jupiter.api.Test;
+
 class MyBatisConfigTest {
 
-    @Mock
-    private SqlSessionFactoryBuilder sqlSessionFactoryBuilder;
+    @Test
+    void sqlSessionFactoryRegistersAllMappersFromClasspathXml() throws Exception {
+        MyBatisConfig myBatisConfig = new MyBatisConfig();
+        DataSource dataSource = mock(DataSource.class);
 
-    @Mock
-    private InputStream inputStream;
+        SqlSessionFactory sqlSessionFactory = myBatisConfig.sqlSessionFactory(dataSource);
 
-    @Mock
-    private SqlSessionFactory sqlSessionFactory;
-
-    @InjectMocks
-    private MyBatisConfig myBatisConfig;
-
+        assertThat(sqlSessionFactory).isNotNull();
+        assertThat(sqlSessionFactory.getConfiguration().hasMapper(TwitchClipMapper.class)).isTrue();
+        assertThat(sqlSessionFactory.getConfiguration().hasMapper(TwitchHighlightMapper.class)).isTrue();
+        assertThat(sqlSessionFactory.getConfiguration().hasMapper(TwitchStreamerMapper.class)).isTrue();
+    }
 }
